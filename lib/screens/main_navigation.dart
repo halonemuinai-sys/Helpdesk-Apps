@@ -265,7 +265,7 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 }
 
-// Temporary Profile/KPI screen placeholder to prevent routing issues
+// Modern Profile & Agent KPI Dashboard Screen
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -274,97 +274,220 @@ class ProfileScreen extends StatelessWidget {
     final auth = Provider.of<AuthProvider>(context);
     final tickets = Provider.of<TicketProvider>(context);
 
+    final currentAgentId = auth.user?['id'];
+
     // Compute basic statistics
-    final myResolvedCount = tickets.tickets
-        .where((t) => t['assignedToId'] == auth.user?['id'] && t['status'] == 'RESOLVED')
+    final myActiveCount = tickets.tickets
+        .where((t) => t['assignedToId'] == currentAgentId && (t['status'] == 'OPEN' || t['status'] == 'IN_PROGRESS'))
         .length;
     final myPendingCount = tickets.tickets
-        .where((t) => t['assignedToId'] == auth.user?['id'] && t['status'] == 'PENDING')
+        .where((t) => t['assignedToId'] == currentAgentId && t['status'] == 'PENDING')
         .length;
-    final myActiveCount = tickets.tickets
-        .where((t) => t['assignedToId'] == auth.user?['id'] && t['status'] == 'IN_PROGRESS')
+    final myResolvedCount = tickets.tickets
+        .where((t) => t['assignedToId'] == currentAgentId && t['status'] == 'RESOLVED')
         .length;
 
+    // Compute Personal KPI / SLA Performance details
+    final myTickets = tickets.tickets.where((t) => t['assignedToId'] == currentAgentId).toList();
+    final myResolvedTickets = myTickets.where((t) => t['status'] == 'RESOLVED').toList();
+    final totalResolved = myResolvedTickets.length;
+    final breachedCount = myResolvedTickets.where((t) => t['isSlaBreached'] == true).length;
+    final metCount = totalResolved - breachedCount;
+    final slaComplianceRate = totalResolved == 0 
+        ? 100.0 
+        : (metCount / totalResolved) * 100;
+
     return Scaffold(
-      backgroundColor: AppColors.green50,
+      backgroundColor: AppColors.slate50,
       appBar: AppBar(
-        title: const Text('Agent Profile & KPI'),
+        title: const Text(
+          'AGENT PROFILE & KPI',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 18),
+        ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.slate900,
         elevation: 0,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Agent Card details
-            Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: AppColors.slate200),
+            // Agent Header Details Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.slate200),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.slate300.withOpacity(0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    CircleAvatar(
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppColors.green500, AppColors.green300],
+                      ),
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
                       radius: 36,
-                      backgroundColor: AppColors.green600,
+                      backgroundColor: Colors.white,
                       child: Text(
                         (auth.user?['name'] ?? 'A').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.green700),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      auth.user?['name'] ?? 'Agent Name',
-                      style: const TextStyle(color: AppColors.slate900, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    auth.user?['name'] ?? 'Agent Name',
+                    style: const TextStyle(color: AppColors.slate900, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    auth.user?['email'] ?? 'agent@mragroup.co.id',
+                    style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.green50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.green200),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      auth.user?['email'] ?? 'agent@mragroup.co.id',
-                      style: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                    child: Text(
+                      (auth.user?['role'] ?? 'AGENT').toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10, color: AppColors.green700, letterSpacing: 1),
                     ),
-                    const SizedBox(height: 12),
-                    Chip(
-                      label: const Text(
-                        'AGENT',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
-                      ),
-                      backgroundColor: AppColors.green600,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
+            // Statistics Header
             const Text(
-              'My Work Statistics',
-              style: TextStyle(color: AppColors.slate900, fontSize: 16, fontWeight: FontWeight.bold),
+              'MY WORK STATISTICS',
+              style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             
-            // Statistics Grid
+            // Statistics Grid Row
             Row(
               children: [
                 Expanded(
-                  child: _buildStatItem('Active Tasks', myActiveCount.toString(), Colors.amber),
+                  child: _buildStatCard('Active', myActiveCount.toString(), const Color(0xFF3B82F6), Icons.play_circle_outline_rounded),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatItem('Pending Tasks', myPendingCount.toString(), Colors.purpleAccent),
+                  child: _buildStatCard('Pending', myPendingCount.toString(), const Color(0xFFA855F7), Icons.pause_circle_outline_rounded),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
-                  child: _buildStatItem('Resolved Tasks', myResolvedCount.toString(), AppColors.emeraldDefault),
+                  child: _buildStatCard('Resolved', myResolvedCount.toString(), const Color(0xFF10B981), Icons.check_circle_outline_rounded),
                 ),
               ],
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
+
+            // Personal SLA KPI Card
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.green200),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.slate300.withOpacity(0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MY SLA PERFORMANCE',
+                            style: TextStyle(
+                              color: AppColors.green700, 
+                              fontWeight: FontWeight.bold, 
+                              fontSize: 11,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Personal target compliance rate',
+                            style: TextStyle(color: AppColors.slate500, fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.green50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${slaComplianceRate.toStringAsFixed(1)}%',
+                          style: TextStyle(
+                            color: slaComplianceRate >= 80 ? AppColors.green700 : Colors.orange,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: slaComplianceRate / 100,
+                      backgroundColor: AppColors.slate100,
+                      color: slaComplianceRate >= 80 ? AppColors.green600 : Colors.orange,
+                      minHeight: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'SLA Met: $metCount Tickets',
+                        style: const TextStyle(color: AppColors.slate700, fontSize: 11),
+                      ),
+                      Text(
+                        'SLA Breached: $breachedCount Tickets',
+                        style: TextStyle(
+                          color: breachedCount > 0 ? Colors.red : AppColors.slate700, 
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
 
             // Logout Button
             OutlinedButton.icon(
@@ -373,17 +496,17 @@ class ProfileScreen extends StatelessWidget {
                   context: context,
                   builder: (context) => AlertDialog(
                     backgroundColor: Colors.white,
-                    title: const Text('Logout', style: TextStyle(color: AppColors.slate900)),
-                    content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?', style: TextStyle(color: AppColors.slate600)),
+                    title: const Text('Sign Out', style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.bold)),
+                    content: const Text('Are you sure you want to sign out of the application?', style: TextStyle(color: AppColors.slate600)),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
-                        child: const Text('Batal'),
+                        child: const Text('Cancel', style: TextStyle(color: AppColors.slate500)),
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(true),
                         style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
-                        child: const Text('Keluar'),
+                        child: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
@@ -397,12 +520,12 @@ class ProfileScreen extends StatelessWidget {
                 }
               },
               icon: const Icon(Icons.logout_rounded),
-              label: const Text('Sign Out'),
+              label: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.bold)),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.redAccent,
-                side: const BorderSide(color: Colors.redAccent),
+                side: const BorderSide(color: Colors.redAccent, width: 1.5),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
           ],
@@ -411,25 +534,33 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value, Color color) {
+  Widget _buildStatCard(String label, String value, Color color, IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.4), width: 1.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate300.withOpacity(0.08),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(height: 6),
           Text(
             value,
-            style: TextStyle(color: color, fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w900),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
-            style: const TextStyle(color: AppColors.slate600, fontSize: 12),
+            style: const TextStyle(color: AppColors.slate500, fontSize: 10, fontWeight: FontWeight.bold),
           ),
         ],
       ),
