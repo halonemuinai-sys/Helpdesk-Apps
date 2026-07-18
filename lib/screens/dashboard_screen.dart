@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -44,13 +45,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return isAssigned && isUnresolved;
     }).toList();
 
-    // Compute SLA metrics
-    final resolvedTickets = allTickets.where((t) => t['status'] == 'RESOLVED').toList();
-    final breachedCount = resolvedTickets.where((t) => t['isSlaBreached'] == true).length;
-    final metCount = resolvedTickets.length - breachedCount;
-    final slaComplianceRate = resolvedTickets.isEmpty 
-        ? 100.0 
-        : (metCount / resolvedTickets.length) * 100;
+    // Agent Performance calculations
+    final myTickets = allTickets.where((t) => t['assignedToId'] == currentAgentId).toList();
+    final myResolvedTickets = myTickets.where((t) => t['status'] == 'RESOLVED').toList();
+    final myResolvedCount = myResolvedTickets.length;
+    final myBreachedCount = myResolvedTickets.where((t) => t['isSlaBreached'] == true).length;
+    final myMetCount = myResolvedCount - myBreachedCount;
+    final mySlaRate = myResolvedCount == 0 ? 100.0 : (myMetCount / myResolvedCount) * 100;
+
+    // Top Resolved Categories calculation
+    final Map<String, int> categoryCounts = {};
+    for (var ticket in allTickets) {
+      if (ticket['status'] == 'RESOLVED') {
+        final category = ticket['category'] ?? 'Other';
+        categoryCounts[category] = (categoryCounts[category] ?? 0) + 1;
+      }
+    }
+    final sortedCategories = categoryCounts.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
 
     final String formattedDate = DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now());
 
@@ -95,9 +107,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Welcome Header Block with Neon Effect
+              // Welcome Header Block
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
@@ -107,83 +119,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.white.withOpacity(0.05)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
                 ),
                 child: Row(
                   children: [
-                    // Premium Avatar with Outer Glowing Ring
                     Container(
-                      padding: const EdgeInsets.all(3),
+                      padding: const EdgeInsets.all(2.5),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFFEC4899)], // Indigo to Pink glow
+                          colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
                         ),
                         shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF6366F1).withOpacity(0.3),
-                            blurRadius: 12,
-                            spreadRadius: 2,
-                          )
-                        ],
                       ),
                       child: CircleAvatar(
-                        radius: 26,
+                        radius: 20,
                         backgroundColor: const Color(0xFF0F172A),
                         child: Text(
                           (auth.user?['name'] ?? 'U').substring(0, 1).toUpperCase(),
                           style: const TextStyle(
                             fontWeight: FontWeight.w900, 
                             color: Colors.white, 
-                            fontSize: 20,
+                            fontSize: 16,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             formattedDate,
-                            style: const TextStyle(color: Color(0xFF818CF8), fontSize: 11, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: Color(0xFF818CF8), fontSize: 10, fontWeight: FontWeight.bold),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
                             auth.user?['name'] ?? 'IT Agent',
                             style: const TextStyle(
                               color: Colors.white, 
-                              fontSize: 22, 
+                              fontSize: 18, 
                               fontWeight: FontWeight.bold,
                               letterSpacing: -0.5,
                             ),
-                          ),
-                          const SizedBox(height: 2),
-                          Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFF10B981), // Glowing active emerald green
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'IT Operations Agent',
-                                style: TextStyle(color: Colors.white54, fontSize: 12),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -191,92 +170,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
 
-              // Glassmorphic SLA KPI Card
+              // COMPACT QUEUE SUMMARY ROW (Replaces the large 2x2 Grid)
+              const Text(
+                'TICKET QUEUE',
+                style: TextStyle(
+                  color: Colors.white70, 
+                  fontSize: 11, 
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  _buildCompactStatusCard('OPEN', openCount.toString(), const Color(0xFF3B82F6)),
+                  const SizedBox(width: 8),
+                  _buildCompactStatusCard('PROGRESS', progressCount.toString(), const Color(0xFFF59E0B)),
+                  const SizedBox(width: 8),
+                  _buildCompactStatusCard('PENDING', pendingCount.toString(), const Color(0xFFA855F7)),
+                  const SizedBox(width: 8),
+                  _buildCompactStatusCard('RESOLVED', resolvedCount.toString(), const Color(0xFF10B981)),
+                ],
+              ),
+              const SizedBox(height: 20),
+
+              // AGENT PERFORMANCE SUMMARY
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.indigo.withOpacity(0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4F46E5).withOpacity(0.15),
-                      blurRadius: 16,
-                      spreadRadius: 2,
-                    )
-                  ],
+                  color: const Color(0xFF1E293B).withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.05)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const Row(
                       children: [
-                        const Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SLA COMPLIANCE',
-                              style: TextStyle(
-                                color: Color(0xFFC7D2FE), 
-                                fontWeight: FontWeight.bold, 
-                                fontSize: 11,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Response & Resolution Target',
-                              style: TextStyle(color: Colors.white60, fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            '${slaComplianceRate.toStringAsFixed(1)}%',
-                            style: TextStyle(
-                              color: slaComplianceRate >= 80 ? const Color(0xFF34D399) : Colors.orangeAccent,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                            ),
+                        Icon(Icons.insights_rounded, color: Color(0xFF6366F1), size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'AGENT PERFORMANCE',
+                          style: TextStyle(
+                            color: Colors.white, 
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 13,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: LinearProgressIndicator(
-                        value: slaComplianceRate / 100,
-                        backgroundColor: Colors.black38,
-                        color: slaComplianceRate >= 80 ? const Color(0xFF10B981) : Colors.orange,
-                        minHeight: 10,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'SLA Met: $metCount Tickets',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
-                        ),
-                        Text(
-                          'SLA Breached: $breachedCount Tickets',
-                          style: TextStyle(
-                            color: breachedCount > 0 ? Colors.redAccent.shade100 : Colors.white70, 
-                            fontSize: 11,
+                        _buildPerformanceStatItem('Active Tasks', myActiveTickets.length.toString()),
+                        _buildPerformanceStatItem('My Resolved', myResolvedCount.toString()),
+                        _buildPerformanceStatItem('My SLA Rate', '${mySlaRate.toStringAsFixed(0)}%'),
+                        // Small circular progress showing SLA compliance
+                        SizedBox(
+                          width: 38,
+                          height: 38,
+                          child: CircularProgressIndicator(
+                            value: mySlaRate / 100,
+                            strokeWidth: 4,
+                            backgroundColor: Colors.white12,
+                            color: mySlaRate >= 80 ? const Color(0xFF10B981) : Colors.orange,
                           ),
                         ),
                       ],
@@ -284,62 +245,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 18),
 
-              // Section Header: Overall Queues
-              const Row(
-                children: [
-                  Icon(Icons.dashboard_customize_rounded, color: Color(0xFF6366F1), size: 18),
-                  SizedBox(width: 8),
-                  Text(
-                    'Overall Ticket Queue',
-                    style: TextStyle(
-                      color: Colors.white, 
-                      fontSize: 16, 
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
+              // TOP RESOLVED CATEGORIES (Bar chart visualization)
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E293B).withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.pie_chart_outline_rounded, color: Color(0xFFEC4899), size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'TOP RESOLVED CATEGORIES',
+                          style: TextStyle(
+                            color: Colors.white, 
+                            fontWeight: FontWeight.bold, 
+                            fontSize: 13,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    if (sortedCategories.isEmpty)
+                      const Text(
+                        'No resolved category data available.',
+                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                      )
+                    else
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: min(3, sortedCategories.length),
+                        itemBuilder: (context, index) {
+                          final category = sortedCategories[index];
+                          final count = category.value;
+                          final totalResolved = resolvedCount == 0 ? 1 : resolvedCount;
+                          final percentage = count / totalResolved;
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      category.key,
+                                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                    Text(
+                                      '$count resolved',
+                                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: LinearProgressIndicator(
+                                    value: percentage,
+                                    backgroundColor: Colors.white12,
+                                    color: _getCategoryColor(index),
+                                    minHeight: 6,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 14),
-              
-              // 2x2 Grid of Status Cards with Premium Shadows and Accents
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 14,
-                mainAxisSpacing: 14,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                childAspectRatio: 1.5,
-                children: [
-                  _buildPremiumGridCard(
-                    'OPEN', 
-                    openCount.toString(), 
-                    const Color(0xFF3B82F6), // Neon Blue
-                    Icons.mark_email_unread_rounded,
-                  ),
-                  _buildPremiumGridCard(
-                    'IN PROGRESS', 
-                    progressCount.toString(), 
-                    const Color(0xFFF59E0B), // Neon Orange
-                    Icons.play_circle_filled_rounded,
-                  ),
-                  _buildPremiumGridCard(
-                    'PENDING', 
-                    pendingCount.toString(), 
-                    const Color(0xFFA855F7), // Neon Purple
-                    Icons.pause_circle_filled_rounded,
-                  ),
-                  _buildPremiumGridCard(
-                    'RESOLVED', 
-                    resolvedCount.toString(), 
-                    const Color(0xFF10B981), // Emerald
-                    Icons.check_circle_rounded,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Section Header: My Active Tasks
               Row(
@@ -347,13 +334,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.assignment_ind_rounded, color: Color(0xFFEC4899), size: 18),
+                      Icon(Icons.assignment_ind_rounded, color: Color(0xFFEC4899), size: 16),
                       SizedBox(width: 8),
                       Text(
                         'My Active Tasks',
                         style: TextStyle(
                           color: Colors.white, 
-                          fontSize: 16, 
+                          fontSize: 14, 
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
                         ),
@@ -368,33 +355,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     ),
                     child: Text(
                       '${myActiveTickets.length} tasks',
-                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
 
               if (myActiveTickets.isEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                   decoration: BoxDecoration(
                     color: const Color(0xFF1E293B).withOpacity(0.4),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Colors.white.withOpacity(0.03)),
                   ),
                   child: const Column(
                     children: [
-                      Icon(Icons.verified_rounded, size: 48, color: Color(0xFF10B981)),
-                      const SizedBox(height: 12),
-                      const Text(
+                      Icon(Icons.verified_rounded, size: 40, color: Color(0xFF10B981)),
+                      SizedBox(height: 8),
+                      Text(
                         'You are all caught up!',
-                        style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 2),
                       Text(
                         'No active tickets are currently assigned to you.',
-                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                        style: TextStyle(color: Colors.white54, fontSize: 11),
                       ),
                     ],
                   ),
@@ -416,55 +403,62 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildPremiumGridCard(String label, String count, Color accentColor, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withOpacity(0.8), // Glassy backdrop
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.04)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white60, 
-                  fontSize: 10, 
-                  fontWeight: FontWeight.w900, 
-                  letterSpacing: 1,
-                ),
-              ),
-              Icon(
-                icon, 
-                color: accentColor, 
-                size: 20,
-              ),
-            ],
-          ),
-          Text(
-            count,
-            style: const TextStyle(
-              color: Colors.white, 
-              fontSize: 32, 
-              fontWeight: FontWeight.w800,
+  Widget _buildCompactStatusCard(String label, String count, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E293B),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withOpacity(0.2)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              count,
+              style: TextStyle(color: color, fontSize: 18, fontWeight: FontWeight.w900),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildPerformanceStatItem(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white54, fontSize: 11),
+        ),
+      ],
+    );
+  }
+
+  Color _getCategoryColor(int index) {
+    switch (index) {
+      case 0:
+        return const Color(0xFF6366F1); // Indigo
+      case 1:
+        return const Color(0xFF10B981); // Emerald
+      case 2:
+        return const Color(0xFFF59E0B); // Amber
+      default:
+        return Colors.blue;
+    }
   }
 
   Widget _buildMyTicketPremiumCard(BuildContext context, dynamic ticket) {
@@ -484,20 +478,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B).withOpacity(0.7),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withOpacity(0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -506,11 +493,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.all(18.0),
+            padding: const EdgeInsets.all(14.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: ID, Priority, Status
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -518,95 +504,87 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ticket['id'] ?? '',
                       style: const TextStyle(
                         color: Color(0xFF818CF8), 
-                        fontSize: 13, 
+                        fontSize: 12, 
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Row(
                       children: [
-                        // Priority Badge
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: priorityColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(color: priorityColor.withOpacity(0.3)),
                           ),
                           child: Text(
                             priority,
-                            style: TextStyle(color: priorityColor, fontSize: 9, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: priorityColor, fontSize: 8, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        // Status Circle
+                        const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: statusColor.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             status,
-                            style: TextStyle(color: statusColor, fontSize: 9, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: statusColor, fontSize: 8, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                
-                // Title
+                const SizedBox(height: 10),
                 Text(
                   ticket['title'] ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white, 
-                    fontSize: 16, 
+                    fontSize: 14, 
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                
-                // Company / Branch info
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.business_rounded, size: 14, color: Colors.white38),
-                    const SizedBox(width: 6),
+                    const Icon(Icons.business_rounded, size: 12, color: Colors.white38),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         '${ticket['company']?['name'] ?? ''} (${ticket['company']?['location'] ?? ''})',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white60, fontSize: 12),
+                        style: const TextStyle(color: Colors.white60, fontSize: 11),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 const Divider(color: Colors.white10, height: 1),
-                const SizedBox(height: 12),
-                
-                // Bottom Row: Requester Info
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     CircleAvatar(
-                      radius: 10,
+                      radius: 8,
                       backgroundColor: const Color(0xFF312E81),
                       child: Text(
                         (ticket['requester']?['name'] ?? 'U').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(fontSize: 9, color: Color(0xFFC7D2FE), fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 8, color: Color(0xFFC7D2FE), fontWeight: FontWeight.bold),
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         ticket['requester']?['name'] ?? '',
-                        style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.white38),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.white38),
                   ],
                 ),
               ],
