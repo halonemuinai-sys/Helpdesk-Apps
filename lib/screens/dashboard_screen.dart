@@ -269,11 +269,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'SLA Met: $metCount Tiket',
+                          'SLA Met: $metCount Tickets',
                           style: const TextStyle(color: Colors.white70, fontSize: 11),
                         ),
                         Text(
-                          'SLA Breached: $breachedCount Tiket',
+                          'SLA Breached: $breachedCount Tickets',
                           style: TextStyle(
                             color: breachedCount > 0 ? Colors.redAccent.shade100 : Colors.white70, 
                             fontSize: 11,
@@ -393,7 +393,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Tidak ada tiket yang ditugaskan kepada Anda.',
+                        'No active tickets are currently assigned to you.',
                         style: TextStyle(color: Colors.white54, fontSize: 12),
                       ),
                     ],
