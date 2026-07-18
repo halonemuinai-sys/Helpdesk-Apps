@@ -4,6 +4,7 @@ import 'providers/auth_provider.dart';
 import 'providers/ticket_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation.dart';
+import 'theme/colors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,30 +25,31 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          brightness: Brightness.dark,
-          primaryColor: const Color(0xFF0F172A),
-          scaffoldBackgroundColor: const Color(0xFF1E293B),
-          colorScheme: ColorScheme.dark(
-            primary: const Color(0xFF6366F1), // Indigo 500
-            secondary: const Color(0xFF06B6D4), // Cyan 500
-            background: const Color(0xFF1E293B),
-            surface: const Color(0xFF0F172A),
+          brightness: Brightness.light,
+          primaryColor: AppColors.green600,
+          scaffoldBackgroundColor: AppColors.green50,
+          colorScheme: ColorScheme.light(
+            primary: AppColors.green600,
+            secondary: AppColors.green500,
+            surface: Colors.white,
             error: Colors.redAccent,
           ),
           appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF0F172A),
+            backgroundColor: Colors.white,
+            foregroundColor: AppColors.slate900,
             elevation: 0,
             centerTitle: false,
+            iconTheme: IconThemeData(color: AppColors.green600),
             titleTextStyle: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.slate900,
             ),
           ),
-          cardColor: const Color(0xFF0F172A),
+          cardColor: Colors.white,
           textTheme: const TextTheme(
-            bodyLarge: TextStyle(color: Colors.white),
-            bodyMedium: TextStyle(color: Colors.white70),
+            bodyLarge: TextStyle(color: AppColors.slate900),
+            bodyMedium: TextStyle(color: AppColors.slate700),
           ),
         ),
         home: const AuthWrapper(),
@@ -62,10 +64,11 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    
+
     // While checking session on cold start, display a beautiful loading screen
     if (auth.isLoading && auth.token == null) {
       return const Scaffold(
+        backgroundColor: AppColors.green50,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -73,14 +76,14 @@ class AuthWrapper extends StatelessWidget {
               Icon(
                 Icons.support_agent_rounded,
                 size: 64,
-                color: Color(0xFF6366F1),
+                color: AppColors.green600,
               ),
               SizedBox(height: 24),
-              CircularProgressIndicator(color: Color(0xFF6366F1)),
+              CircularProgressIndicator(color: AppColors.green600),
               SizedBox(height: 16),
               Text(
                 'Memuat Sesi Workspace...',
-                style: TextStyle(color: Colors.white70, fontSize: 14),
+                style: TextStyle(color: AppColors.slate500, fontSize: 14),
               ),
             ],
           ),

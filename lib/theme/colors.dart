@@ -23,6 +23,15 @@ class AppColors {
   static const Color emeraldDefault = Color(0xFF10B981);
   static const Color emeraldAccent = Color(0xFF34D399);
 
+  // Brand green (light UI accent - used on login/auth screens)
+  static const Color green50 = Color(0xFFF0FDF4);
+  static const Color green100 = Color(0xFFDCFCE7);
+  static const Color green200 = Color(0xFFBBF7D0);
+  static const Color green300 = Color(0xFF86EFAC);
+  static const Color green500 = Color(0xFF22C55E);
+  static const Color green600 = Color(0xFF16A34A);
+  static const Color green700 = Color(0xFF15803D);
+
   // Semantic
   static const Color success = emeraldDefault;
   static const Color pending = Colors.purpleAccent;

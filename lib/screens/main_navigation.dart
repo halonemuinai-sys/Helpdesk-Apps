@@ -56,43 +56,72 @@ class _MainNavigationState extends State<MainNavigation> {
         children: _screens,
       ),
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(
-            top: BorderSide(color: AppColors.slate900, width: 1),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          type: BottomNavigationBarType.fixed,
-          backgroundColor: const Color(0xFF0F172A), // Dark slate
-          selectedItemColor: const Color(0xFF6366F1), // Neon indigo
-          unselectedItemColor: AppColors.slate400,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          elevation: 8,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.dashboard_outlined),
-              activeIcon: Icon(Icons.dashboard_rounded),
-              label: 'Dashboard',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.confirmation_num_outlined),
-              activeIcon: Icon(Icons.confirmation_num_rounded),
-              label: 'Tickets',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_outline_rounded),
-              activeIcon: Icon(Icons.add_circle_rounded),
-              label: 'New Ticket',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline_rounded),
-              activeIcon: Icon(Icons.person_rounded),
-              label: 'Profile',
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.slate400.withOpacity(0.18),
+              blurRadius: 24,
+              offset: const Offset(0, -6),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
+          ),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              navigationBarTheme: NavigationBarThemeData(
+                labelTextStyle: WidgetStateProperty.resolveWith((states) {
+                  final selected = states.contains(WidgetState.selected);
+                  return TextStyle(
+                    fontSize: 11,
+                    fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+                    color: selected ? AppColors.green700 : AppColors.slate400,
+                  );
+                }),
+              ),
+            ),
+            child: NavigationBar(
+              selectedIndex: _selectedIndex,
+              onDestinationSelected: _onItemTapped,
+              backgroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              height: 68,
+              indicatorColor: AppColors.green100,
+              indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.dashboard_outlined, color: AppColors.slate400),
+                  selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.green700),
+                  label: 'Dashboard',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.confirmation_num_outlined, color: AppColors.slate400),
+                  selectedIcon: Icon(Icons.confirmation_num_rounded, color: AppColors.green700),
+                  label: 'Tickets',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.slate400),
+                  selectedIcon: Icon(Icons.add_circle_rounded, color: AppColors.green700),
+                  label: 'New Ticket',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline_rounded, color: AppColors.slate400),
+                  selectedIcon: Icon(Icons.person_rounded, color: AppColors.green700),
+                  label: 'Profile',
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -120,10 +149,11 @@ class ProfileScreen extends StatelessWidget {
         .length;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: AppColors.green50,
       appBar: AppBar(
         title: const Text('Agent Profile & KPI'),
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.slate900,
         elevation: 0,
       ),
       body: SingleChildScrollView(
@@ -133,29 +163,33 @@ class ProfileScreen extends StatelessWidget {
           children: [
             // Agent Card details
             Card(
-              color: const Color(0xFF0F172A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              color: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: AppColors.slate200),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
                     CircleAvatar(
                       radius: 36,
-                      backgroundColor: Colors.indigo.shade900,
+                      backgroundColor: AppColors.green600,
                       child: Text(
                         (auth.user?['name'] ?? 'A').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF818CF8)),
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
                       auth.user?['name'] ?? 'Agent Name',
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: AppColors.slate900, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       auth.user?['email'] ?? 'agent@mragroup.co.id',
-                      style: const TextStyle(color: AppColors.slate400, fontSize: 13),
+                      style: const TextStyle(color: AppColors.slate500, fontSize: 13),
                     ),
                     const SizedBox(height: 12),
                     Chip(
@@ -163,17 +197,17 @@ class ProfileScreen extends StatelessWidget {
                         'AGENT',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white),
                       ),
-                      backgroundColor: Colors.indigo.shade600,
+                      backgroundColor: AppColors.green600,
                     ),
                   ],
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             const Text(
               'My Work Statistics',
-              style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppColors.slate900, fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             
@@ -201,9 +235,9 @@ class ProfileScreen extends StatelessWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    backgroundColor: const Color(0xFF0F172A),
-                    title: const Text('Logout', style: TextStyle(color: Colors.white)),
-                    content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?', style: TextStyle(color: Colors.white70)),
+                    backgroundColor: Colors.white,
+                    title: const Text('Logout', style: TextStyle(color: AppColors.slate900)),
+                    content: const Text('Apakah Anda yakin ingin keluar dari aplikasi?', style: TextStyle(color: AppColors.slate600)),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(context).pop(false),
@@ -244,9 +278,9 @@ class ProfileScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3), width: 1.5),
+        border: Border.all(color: color.withOpacity(0.4), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,7 +292,7 @@ class ProfileScreen extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
+            style: const TextStyle(color: AppColors.slate600, fontSize: 12),
           ),
         ],
       ),
