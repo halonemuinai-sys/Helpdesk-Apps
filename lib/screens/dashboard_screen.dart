@@ -53,6 +53,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final myMetCount = myResolvedCount - myBreachedCount;
     final mySlaRate = myResolvedCount == 0 ? 100.0 : (myMetCount / myResolvedCount) * 100;
 
+    // SLA compliance metrics (overall)
+    final resolvedTickets = allTickets.where((t) => t['status'] == 'RESOLVED').toList();
+    final breachedCount = resolvedTickets.where((t) => t['isSlaBreached'] == true).length;
+    final metCount = resolvedTickets.length - breachedCount;
+    final slaComplianceRate = resolvedTickets.isEmpty 
+        ? 100.0 
+        : (metCount / resolvedTickets.length) * 100;
+
     // Top Resolved Categories calculation
     final Map<String, int> categoryCounts = {};
     for (var ticket in allTickets) {
@@ -172,7 +180,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 18),
 
-              // COMPACT QUEUE SUMMARY ROW (Replaces the large 2x2 Grid)
+              // COMPACT QUEUE SUMMARY ROW
               const Text(
                 'TICKET QUEUE',
                 style: TextStyle(
@@ -194,7 +202,93 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   _buildCompactStatusCard('RESOLVED', resolvedCount.toString(), const Color(0xFF10B981)),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+
+              // SLA COMPLIANCE CARD (Retained based on user feedback)
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.indigo.shade800.withOpacity(0.6)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'SLA COMPLIANCE',
+                              style: TextStyle(
+                                color: Color(0xFFC7D2FE), 
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 11,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Response & Resolution Target',
+                              style: TextStyle(color: Colors.white60, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.25),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${slaComplianceRate.toStringAsFixed(1)}%',
+                            style: TextStyle(
+                              color: slaComplianceRate >= 80 ? const Color(0xFF34D399) : Colors.orangeAccent,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: slaComplianceRate / 100,
+                        backgroundColor: Colors.black38,
+                        color: slaComplianceRate >= 80 ? const Color(0xFF10B981) : Colors.orange,
+                        minHeight: 8,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'SLA Met: $metCount Tickets',
+                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                        ),
+                        Text(
+                          'SLA Breached: $breachedCount Tickets',
+                          style: TextStyle(
+                            color: breachedCount > 0 ? Colors.redAccent.shade100 : Colors.white70, 
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 18),
 
               // AGENT PERFORMANCE SUMMARY
               Container(
@@ -229,7 +323,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         _buildPerformanceStatItem('Active Tasks', myActiveTickets.length.toString()),
                         _buildPerformanceStatItem('My Resolved', myResolvedCount.toString()),
                         _buildPerformanceStatItem('My SLA Rate', '${mySlaRate.toStringAsFixed(0)}%'),
-                        // Small circular progress showing SLA compliance
                         SizedBox(
                           width: 38,
                           height: 38,
