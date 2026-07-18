@@ -32,7 +32,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -50,10 +50,10 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                     children: [
                       const Text(
                         'Filter Tickets',
-                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.slate900, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
+                        icon: const Icon(Icons.close, color: AppColors.slate700),
                         onPressed: () => Navigator.pop(context),
                       )
                     ],
@@ -61,7 +61,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
                   
                   // Status Filter
-                  const Text('STATUS', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const Text('STATUS', style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -78,7 +78,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
 
                   // Priority Filter
-                  const Text('PRIORITY', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const Text('PRIORITY', style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -94,20 +94,20 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
 
                   // Company Filter
-                  const Text('COMPANY / BRANCH', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const Text('COMPANY / BRANCH', style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    dropdownColor: const Color(0xFF0F172A),
+                    dropdownColor: Colors.white,
                     initialValue: prov.selectedCompanyId.isEmpty ? null : prov.selectedCompanyId,
-                    hint: const Text('All Companies', style: TextStyle(color: Colors.white54, fontSize: 14)),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
+                    hint: const Text('All Companies', style: TextStyle(color: AppColors.slate500, fontSize: 14)),
+                    style: const TextStyle(color: AppColors.slate900, fontSize: 14),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: AppColors.slate900,
+                      fillColor: AppColors.slate50,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: AppColors.slate850),
+                        borderSide: const BorderSide(color: AppColors.slate200),
                       ),
                     ),
                     items: [
@@ -138,11 +138,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF6366F1)),
+                            side: const BorderSide(color: AppColors.green600),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text('Reset All', style: TextStyle(color: Color(0xFF818CF8), fontWeight: FontWeight.bold)),
+                          child: const Text('Reset All', style: TextStyle(color: AppColors.green700, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -150,7 +150,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF4F46E5),
+                            backgroundColor: AppColors.green600,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
@@ -174,15 +174,15 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
       label: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : AppColors.slate400,
+          color: isSelected ? Colors.white : AppColors.slate600,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           fontSize: 11,
         ),
       ),
       selected: isSelected,
       onSelected: (_) => onTap(value),
-      selectedColor: const Color(0xFF4F46E5),
-      backgroundColor: AppColors.slate900,
+      selectedColor: AppColors.green600,
+      backgroundColor: AppColors.slate100,
     );
   }
 
@@ -191,23 +191,23 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
     final ticketProv = Provider.of<TicketProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Premium dark theme
+      backgroundColor: AppColors.slate50, // Light neutral theme
       appBar: AppBar(
         title: const Text(
           'TICKETS FEED',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 18),
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 18, color: AppColors.slate900),
         ),
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
             decoration: BoxDecoration(
-              color: AppColors.slate800,
+              color: AppColors.slate100,
               borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
-              icon: const Icon(Icons.filter_list_rounded, color: Colors.white, size: 20),
+              icon: const Icon(Icons.filter_list_rounded, color: AppColors.slate700, size: 20),
               onPressed: _showFilterBottomSheet,
             ),
           ),
@@ -218,7 +218,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
           // Elegant Search Box Container
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            color: const Color(0xFF0F172A),
+            color: Colors.white,
             child: TextField(
               controller: _searchController,
               onChanged: (val) {
@@ -227,14 +227,14 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
               onSubmitted: (val) {
                 ticketProv.fetchTickets();
               },
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: AppColors.slate900, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search by ID, title, or reporter...',
-                hintStyle: const TextStyle(color: AppColors.slate500, fontSize: 13),
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6366F1), size: 20),
+                hintStyle: const TextStyle(color: AppColors.slate400, fontSize: 13),
+                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.green600, size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 18),
+                        icon: const Icon(Icons.close_rounded, color: AppColors.slate500, size: 18),
                         onPressed: () {
                           _searchController.clear();
                           ticketProv.setSearchQuery('');
@@ -243,20 +243,21 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFF1E293B).withOpacity(0.6),
+                fillColor: AppColors.slate50,
                 isDense: true,
                 contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(color: Colors.white.withOpacity(0.04)),
+                  borderSide: const BorderSide(color: AppColors.slate200),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+                  borderSide: const BorderSide(color: AppColors.green600, width: 1.5),
                 ),
               ),
             ),
           ),
+          const SizedBox(height: 10),
           
           // Horizontal Active Filters Bar (Premium UX)
           if (ticketProv.selectedStatus.isNotEmpty || 
@@ -283,11 +284,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ticketProv.fetchTickets(),
-              color: const Color(0xFF6366F1),
-              backgroundColor: const Color(0xFF1E293B),
+              color: AppColors.green600,
+              backgroundColor: Colors.white,
               child: ticketProv.isLoading && ticketProv.tickets.isEmpty
                   ? const Center(
-                      child: CircularProgressIndicator(color: Color(0xFF6366F1)),
+                      child: CircularProgressIndicator(color: AppColors.green600),
                     )
                   : ticketProv.tickets.isEmpty
                       ? ListView(
@@ -299,15 +300,15 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                                   Container(
                                     padding: const EdgeInsets.all(20),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF1E293B).withOpacity(0.5),
+                                      color: AppColors.slate200,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(Icons.receipt_long_rounded, size: 52, color: AppColors.slate600),
+                                    child: const Icon(Icons.receipt_long_rounded, size: 52, color: AppColors.slate500),
                                   ),
                                   const SizedBox(height: 16),
                                   const Text(
                                     'No tickets found',
-                                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(color: AppColors.slate800, fontSize: 16, fontWeight: FontWeight.bold),
                                   ),
                                   const SizedBox(height: 6),
                                   const Padding(
@@ -345,21 +346,21 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF312E81).withOpacity(0.6),
+        color: AppColors.green50,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.3)),
+        border: Border.all(color: AppColors.green200),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             label,
-            style: const TextStyle(color: Color(0xFFC7D2FE), fontSize: 11, fontWeight: FontWeight.w600),
+            style: const TextStyle(color: AppColors.green700, fontSize: 11, fontWeight: FontWeight.w600),
           ),
           const SizedBox(width: 6),
           InkWell(
             onTap: onClear,
-            child: const Icon(Icons.close_rounded, size: 14, color: Color(0xFF818CF8)),
+            child: const Icon(Icons.close_rounded, size: 14, color: AppColors.green600),
           ),
         ],
       ),
@@ -376,33 +377,33 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
     final status = ticket['status'] ?? 'OPEN';
     Color statusColor = Colors.grey;
     if (status == 'OPEN') statusColor = const Color(0xFF3B82F6);
-    if (status == 'IN_PROGRESS') statusColor = const Color(0xFFF59E0B);
-    if (status == 'PENDING') statusColor = const Color(0xFFA855F7);
-    if (status == 'RESOLVED') statusColor = const Color(0xFF10B981);
+    if (status == 'IN_PROGRESS') statusColor = const Color(0xFFD97706);
+    if (status == 'PENDING') statusColor = const Color(0xFF7C3AED);
+    if (status == 'RESOLVED') statusColor = const Color(0xFF059669);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withOpacity(0.7), // Glassy backdrop
+        color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isNew 
-              ? const Color(0xFF6366F1).withOpacity(0.8) 
-              : Colors.white.withOpacity(0.04),
+              ? AppColors.green500
+              : AppColors.slate200,
           width: isNew ? 2.5 : 1,
         ),
         boxShadow: isNew
             ? [
                 BoxShadow(
-                  color: const Color(0xFF6366F1).withOpacity(0.3),
+                  color: AppColors.green300.withOpacity(0.3),
                   blurRadius: 12,
                   spreadRadius: 2,
                 )
               ]
             : [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.12),
+                  color: AppColors.slate300.withOpacity(0.12),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 )
@@ -439,14 +440,14 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       children: [
                         Text(
                           ticket['id'] ?? '',
-                          style: const TextStyle(color: Color(0xFF818CF8), fontSize: 13, fontWeight: FontWeight.bold),
+                          style: const TextStyle(color: AppColors.green600, fontSize: 13, fontWeight: FontWeight.bold),
                         ),
                         if (isNew) ...[
                           const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6366F1),
+                              color: AppColors.green600,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
@@ -460,9 +461,9 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.12),
+                        color: priorityColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: priorityColor.withOpacity(0.25)),
+                        border: Border.all(color: priorityColor.withOpacity(0.2)),
                       ),
                       child: Text(
                         priority,
@@ -478,27 +479,27 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   ticket['title'] ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: AppColors.slate900, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
                 
                 // Company / Branch info
                 Row(
                   children: [
-                    const Icon(Icons.business_rounded, size: 14, color: Colors.white38),
+                    const Icon(Icons.business_rounded, size: 14, color: AppColors.slate400),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         '${ticket['company']?['name'] ?? ''} (${ticket['company']?['location'] ?? ''})',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white60, fontSize: 12),
+                        style: const TextStyle(color: AppColors.slate600, fontSize: 12),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 14),
-                const Divider(color: Colors.white10, height: 1),
+                const Divider(color: AppColors.slate200, height: 1),
                 const SizedBox(height: 14),
                 
                 // Bottom Row: Requester name and Status Badge
@@ -509,23 +510,23 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       children: [
                         CircleAvatar(
                           radius: 11,
-                          backgroundColor: const Color(0xFF312E81),
+                          backgroundColor: AppColors.green100,
                           child: Text(
                             (ticket['requester']?['name'] ?? 'U').substring(0, 1).toUpperCase(),
-                            style: const TextStyle(fontSize: 9, color: Color(0xFFC7D2FE), fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 9, color: AppColors.green700, fontWeight: FontWeight.bold),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           ticket['requester']?['name'] ?? '',
-                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          style: const TextStyle(color: AppColors.slate800, fontSize: 13),
                         ),
                       ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.12),
+                        color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

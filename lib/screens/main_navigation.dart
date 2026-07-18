@@ -82,12 +82,12 @@ class _MainNavigationState extends State<MainNavigation> {
               color: Colors.transparent,
               child: Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF110C2B), // Deep Space Purple
+                  color: Colors.white, // Light backdrop
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFA855F7), width: 2), // Glowing Neon Purple
+                  border: Border.all(color: AppColors.green500, width: 2), // Green border
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFA855F7).withOpacity(0.35),
+                      color: AppColors.slate400.withOpacity(0.2),
                       blurRadius: 16,
                       spreadRadius: 2,
                     ),
@@ -115,12 +115,12 @@ class _MainNavigationState extends State<MainNavigation> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: const BoxDecoration(
-                              color: Color(0xFF17113C),
+                              color: AppColors.green100,
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(
-                              Icons.bolt_rounded,
-                              color: Color(0xFFC084FC),
+                              Icons.notifications_active_rounded,
+                              color: AppColors.green600,
                               size: 24,
                             ),
                           ),
@@ -133,7 +133,7 @@ class _MainNavigationState extends State<MainNavigation> {
                                 const Text(
                                   'NEW TICKET RECEIVED',
                                   style: TextStyle(
-                                    color: Color(0xFFC084FC), 
+                                    color: AppColors.green600, 
                                     fontSize: 10, 
                                     fontWeight: FontWeight.bold, 
                                     letterSpacing: 1.5,
@@ -144,18 +144,18 @@ class _MainNavigationState extends State<MainNavigation> {
                                   ticket['title'] ?? 'No Title',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(color: AppColors.slate900, fontSize: 14, fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
                                   'Reporter: ${ticket['requester']?['name'] ?? 'Unknown'}',
-                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                  style: const TextStyle(color: AppColors.slate500, fontSize: 11),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white30, size: 14),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.slate400, size: 14),
                         ],
                       ),
                     ),

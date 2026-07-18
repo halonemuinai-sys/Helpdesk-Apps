@@ -45,7 +45,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return isAssigned && isUnresolved;
     }).toList();
 
-
     // SLA compliance metrics (overall)
     final resolvedTickets = allTickets.where((t) => t['status'] == 'RESOLVED').toList();
     final breachedCount = resolvedTickets.where((t) => t['isSlaBreached'] == true).length;
@@ -68,7 +67,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final String formattedDate = DateFormat('EEEE, dd MMMM yyyy').format(DateTime.now());
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A), // Premium Dark Slate 900
+      backgroundColor: AppColors.slate50, // Light Slate Background
       appBar: AppBar(
         title: const Text(
           'MRA HELPDESK',
@@ -76,21 +75,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
             fontWeight: FontWeight.w900, 
             letterSpacing: 1.5,
             fontSize: 20,
-            color: Colors.white,
+            color: AppColors.slate900,
           ),
         ),
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: false,
         actions: [
           Container(
             margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
             decoration: BoxDecoration(
-              color: AppColors.slate800,
+              color: AppColors.slate100,
               borderRadius: BorderRadius.circular(10),
             ),
             child: IconButton(
-              icon: const Icon(Icons.sync_rounded, color: Colors.white, size: 20),
+              icon: const Icon(Icons.sync_rounded, color: AppColors.slate800, size: 20),
               onPressed: () {
                 ticketProv.fetchTickets();
               },
@@ -100,8 +99,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () => ticketProv.fetchTickets(),
-        color: const Color(0xFF6366F1),
-        backgroundColor: const Color(0xFF1E293B),
+        color: AppColors.green600,
+        backgroundColor: Colors.white,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
@@ -112,35 +111,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF1E293B).withOpacity(0.8),
-                      const Color(0xFF0F172A).withOpacity(0.9),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.slate300.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(color: AppColors.slate200),
                 ),
                 child: Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(2.5),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF6366F1), Color(0xFFEC4899)],
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppColors.green600, AppColors.green300],
                         ),
                         shape: BoxShape.circle,
                       ),
                       child: CircleAvatar(
                         radius: 20,
-                        backgroundColor: const Color(0xFF0F172A),
+                        backgroundColor: Colors.white,
                         child: Text(
                           (auth.user?['name'] ?? 'U').substring(0, 1).toUpperCase(),
                           style: const TextStyle(
                             fontWeight: FontWeight.w900, 
-                            color: Colors.white, 
+                            color: AppColors.green700, 
                             fontSize: 16,
                           ),
                         ),
@@ -153,13 +152,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         children: [
                           Text(
                             formattedDate,
-                            style: const TextStyle(color: Color(0xFF818CF8), fontSize: 10, fontWeight: FontWeight.bold),
+                            style: const TextStyle(color: AppColors.slate500, fontSize: 10, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             auth.user?['name'] ?? 'IT Agent',
                             style: const TextStyle(
-                              color: Colors.white, 
+                              color: AppColors.slate900, 
                               fontSize: 18, 
                               fontWeight: FontWeight.bold,
                               letterSpacing: -0.5,
@@ -177,7 +176,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const Text(
                 'TICKET QUEUE',
                 style: TextStyle(
-                  color: Colors.white70, 
+                  color: AppColors.slate500, 
                   fontSize: 11, 
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -186,13 +185,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 10),
               Row(
                 children: [
-                  _buildCompactStatusCard('OPEN', openCount.toString(), const Color(0xFF3B82F6)),
+                  _buildCompactStatusCard('OPEN', openCount.toString(), const Color(0xFF2563EB)),
                   const SizedBox(width: 8),
-                  _buildCompactStatusCard('PROGRESS', progressCount.toString(), const Color(0xFFF59E0B)),
+                  _buildCompactStatusCard('PROGRESS', progressCount.toString(), const Color(0xFFD97706)),
                   const SizedBox(width: 8),
-                  _buildCompactStatusCard('PENDING', pendingCount.toString(), const Color(0xFFA855F7)),
+                  _buildCompactStatusCard('PENDING', pendingCount.toString(), const Color(0xFF7C3AED)),
                   const SizedBox(width: 8),
-                  _buildCompactStatusCard('RESOLVED', resolvedCount.toString(), const Color(0xFF10B981)),
+                  _buildCompactStatusCard('RESOLVED', resolvedCount.toString(), const Color(0xFF059669)),
                 ],
               ),
               const SizedBox(height: 18),
@@ -201,13 +200,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF312E81), Color(0xFF1E1B4B)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.indigo.shade800.withOpacity(0.6)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.slate300.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(color: AppColors.green200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -221,7 +223,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             Text(
                               'SLA COMPLIANCE',
                               style: TextStyle(
-                                color: Color(0xFFC7D2FE), 
+                                color: AppColors.green700, 
                                 fontWeight: FontWeight.bold, 
                                 fontSize: 11,
                                 letterSpacing: 1,
@@ -230,20 +232,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             SizedBox(height: 4),
                             Text(
                               'Response & Resolution Target',
-                              style: TextStyle(color: Colors.white60, fontSize: 12),
+                              style: TextStyle(color: AppColors.slate600, fontSize: 12),
                             ),
                           ],
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.black.withOpacity(0.25),
+                            color: AppColors.green50,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Text(
                             '${slaComplianceRate.toStringAsFixed(1)}%',
                             style: TextStyle(
-                              color: slaComplianceRate >= 80 ? const Color(0xFF34D399) : Colors.orangeAccent,
+                              color: slaComplianceRate >= 80 ? AppColors.green700 : Colors.orange,
                               fontWeight: FontWeight.w900,
                               fontSize: 16,
                             ),
@@ -256,8 +258,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: LinearProgressIndicator(
                         value: slaComplianceRate / 100,
-                        backgroundColor: Colors.black38,
-                        color: slaComplianceRate >= 80 ? const Color(0xFF10B981) : Colors.orange,
+                        backgroundColor: AppColors.slate200,
+                        color: slaComplianceRate >= 80 ? AppColors.green600 : Colors.orange,
                         minHeight: 8,
                       ),
                     ),
@@ -267,12 +269,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         Text(
                           'SLA Met: $metCount Tickets',
-                          style: const TextStyle(color: Colors.white70, fontSize: 11),
+                          style: const TextStyle(color: AppColors.slate700, fontSize: 11),
                         ),
                         Text(
                           'SLA Breached: $breachedCount Tickets',
                           style: TextStyle(
-                            color: breachedCount > 0 ? Colors.redAccent.shade100 : Colors.white70, 
+                            color: breachedCount > 0 ? Colors.red : AppColors.slate700, 
                             fontSize: 11,
                           ),
                         ),
@@ -287,21 +289,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.8),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.slate300.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                  border: Border.all(color: AppColors.slate200),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.pie_chart_outline_rounded, color: Color(0xFFEC4899), size: 18),
+                        Icon(Icons.pie_chart_outline_rounded, color: AppColors.green600, size: 18),
                         SizedBox(width: 8),
                         Text(
                           'TOP RESOLVED CATEGORIES',
                           style: TextStyle(
-                            color: Colors.white, 
+                            color: AppColors.slate900, 
                             fontWeight: FontWeight.bold, 
                             fontSize: 13,
                             letterSpacing: 0.5,
@@ -313,7 +322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     if (sortedCategories.isEmpty)
                       const Text(
                         'No resolved category data available.',
-                        style: TextStyle(color: Colors.white38, fontSize: 12),
+                        style: TextStyle(color: AppColors.slate400, fontSize: 12),
                       )
                     else
                       ListView.builder(
@@ -336,11 +345,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   children: [
                                     Text(
                                       category.key,
-                                      style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                                      style: const TextStyle(color: AppColors.slate800, fontSize: 12, fontWeight: FontWeight.w600),
                                     ),
                                     Text(
                                       '$count resolved',
-                                      style: const TextStyle(color: Colors.white54, fontSize: 11),
+                                      style: const TextStyle(color: AppColors.slate500, fontSize: 11),
                                     ),
                                   ],
                                 ),
@@ -349,7 +358,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                   child: LinearProgressIndicator(
                                     value: percentage,
-                                    backgroundColor: Colors.white12,
+                                    backgroundColor: AppColors.slate100,
                                     color: _getCategoryColor(index),
                                     minHeight: 6,
                                   ),
@@ -370,12 +379,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Row(
                     children: [
-                      Icon(Icons.assignment_ind_rounded, color: Color(0xFFEC4899), size: 16),
+                      Icon(Icons.assignment_ind_rounded, color: AppColors.green600, size: 16),
                       SizedBox(width: 8),
                       Text(
                         'My Active Tasks',
                         style: TextStyle(
-                          color: Colors.white, 
+                          color: AppColors.slate900, 
                           fontSize: 14, 
                           fontWeight: FontWeight.bold,
                           letterSpacing: 0.5,
@@ -386,12 +395,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1E293B),
+                      color: AppColors.slate200,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
                       '${myActiveTickets.length} tasks',
-                      style: const TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold),
+                      style: const TextStyle(color: AppColors.slate800, fontSize: 11, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ],
@@ -402,22 +411,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withOpacity(0.4),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.03)),
+                    border: Border.all(color: AppColors.slate200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.slate300.withOpacity(0.12),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: const Column(
                     children: [
-                      Icon(Icons.verified_rounded, size: 40, color: Color(0xFF10B981)),
+                      Icon(Icons.verified_rounded, size: 40, color: AppColors.emeraldDefault),
                       SizedBox(height: 8),
                       Text(
                         'You are all caught up!',
-                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: AppColors.slate900, fontSize: 13, fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 2),
                       Text(
                         'No active tickets are currently assigned to you.',
-                        style: TextStyle(color: Colors.white54, fontSize: 11),
+                        style: TextStyle(color: AppColors.slate500, fontSize: 11),
                       ),
                     ],
                   ),
@@ -444,9 +460,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E293B),
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.slate300.withOpacity(0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           children: [
@@ -459,7 +482,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Colors.white60, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+              style: const TextStyle(color: AppColors.slate600, fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
             ),
           ],
         ),
@@ -470,11 +493,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Color _getCategoryColor(int index) {
     switch (index) {
       case 0:
-        return const Color(0xFF6366F1); // Indigo
+        return AppColors.green500;
       case 1:
-        return const Color(0xFF10B981); // Emerald
+        return const Color(0xFF3B82F6);
       case 2:
-        return const Color(0xFFF59E0B); // Amber
+        return const Color(0xFFF59E0B);
       default:
         return Colors.blue;
     }
@@ -489,16 +512,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     final status = ticket['status'] ?? 'OPEN';
     Color statusColor = Colors.grey;
-    if (status == 'OPEN') statusColor = const Color(0xFF60A5FA);
-    if (status == 'IN_PROGRESS') statusColor = const Color(0xFFFBBF24);
-    if (status == 'PENDING') statusColor = const Color(0xFFC084FC);
+    if (status == 'OPEN') statusColor = const Color(0xFF3B82F6);
+    if (status == 'IN_PROGRESS') statusColor = const Color(0xFFD97706);
+    if (status == 'PENDING') statusColor = const Color(0xFF7C3AED);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withOpacity(0.7),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate300.withOpacity(0.12),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
@@ -522,7 +552,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Text(
                       ticket['id'] ?? '',
                       style: const TextStyle(
-                        color: Color(0xFF818CF8), 
+                        color: AppColors.green600, 
                         fontSize: 12, 
                         fontWeight: FontWeight.bold,
                       ),
@@ -532,9 +562,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: priorityColor.withOpacity(0.12),
+                            color: priorityColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: priorityColor.withOpacity(0.3)),
+                            border: Border.all(color: priorityColor.withOpacity(0.2)),
                           ),
                           child: Text(
                             priority,
@@ -545,7 +575,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
-                            color: statusColor.withOpacity(0.12),
+                            color: statusColor.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
@@ -563,7 +593,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Colors.white, 
+                    color: AppColors.slate900, 
                     fontSize: 14, 
                     fontWeight: FontWeight.bold,
                   ),
@@ -571,39 +601,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.business_rounded, size: 12, color: Colors.white38),
+                    const Icon(Icons.business_rounded, size: 12, color: AppColors.slate400),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         '${ticket['company']?['name'] ?? ''} (${ticket['company']?['location'] ?? ''})',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white60, fontSize: 11),
+                        style: const TextStyle(color: AppColors.slate600, fontSize: 11),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
-                const Divider(color: Colors.white10, height: 1),
+                const Divider(color: AppColors.slate200, height: 1),
                 const SizedBox(height: 10),
                 Row(
                   children: [
                     CircleAvatar(
                       radius: 8,
-                      backgroundColor: const Color(0xFF312E81),
+                      backgroundColor: AppColors.green100,
                       child: Text(
                         (ticket['requester']?['name'] ?? 'U').substring(0, 1).toUpperCase(),
-                        style: const TextStyle(fontSize: 8, color: Color(0xFFC7D2FE), fontWeight: FontWeight.bold),
+                        style: const TextStyle(fontSize: 8, color: AppColors.green700, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         ticket['requester']?['name'] ?? '',
-                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                        style: const TextStyle(color: AppColors.slate800, fontSize: 12),
                       ),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: Colors.white38),
+                    const Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.slate400),
                   ],
                 ),
               ],
