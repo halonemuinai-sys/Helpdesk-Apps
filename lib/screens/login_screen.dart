@@ -152,34 +152,28 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildIconHeader() {
     return Center(
       child: Container(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: AppColors.green100.withOpacity(0.6),
-          shape: BoxShape.circle,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.slate200),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.slate300.withOpacity(0.15),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.green500.withOpacity(0.25),
-                blurRadius: 24,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.support_agent_rounded,
-            size: 56,
-            color: AppColors.green600,
-          ),
+        child: Image.asset(
+          'assets/images/logo_mra.png',
+          height: 60,
+          fit: BoxFit.contain,
         ),
       ),
     )
         .animate(onPlay: (controller) => controller.repeat(reverse: true))
-        .scaleXY(begin: 1, end: 1.05, duration: 1800.ms, curve: Curves.easeInOut);
+        .scaleXY(begin: 0.98, end: 1.02, duration: 2000.ms, curve: Curves.easeInOut);
   }
 
   Widget _buildTitle() {

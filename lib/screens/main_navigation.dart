@@ -300,9 +300,19 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.slate50,
       appBar: AppBar(
-        title: const Text(
-          'AGENT PROFILE & KPI',
-          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 18),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo_mra.png',
+              height: 28,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'AGENT PROFILE & KPI',
+              style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.0, fontSize: 16),
+            ),
+          ],
         ),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.slate900,

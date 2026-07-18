@@ -69,14 +69,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: AppColors.slate50, // Light Slate Background
       appBar: AppBar(
-        title: const Text(
-          'MRA HELPDESK',
-          style: TextStyle(
-            fontWeight: FontWeight.w900, 
-            letterSpacing: 1.5,
-            fontSize: 20,
-            color: AppColors.slate900,
-          ),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo_mra.png',
+              height: 28,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'MRA HELPDESK',
+              style: TextStyle(
+                fontWeight: FontWeight.w900, 
+                letterSpacing: 1.0,
+                fontSize: 16,
+                color: AppColors.slate900,
+              ),
+            ),
+          ],
         ),
         backgroundColor: Colors.white,
         elevation: 0,
