@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import '../services/api_client.dart';
 import '../theme/colors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -150,30 +151,124 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildIconHeader() {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AppColors.slate200),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.slate300.withOpacity(0.15),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
+    return GestureDetector(
+      onDoubleTap: _showServerSettingsDialog,
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.green100.withOpacity(0.6),
+            shape: BoxShape.circle,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.green500.withOpacity(0.25),
+                  blurRadius: 24,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Image.asset(
-          'assets/images/logo_mra.png',
-          height: 60,
-          fit: BoxFit.contain,
+            child: const Icon(
+              Icons.support_agent_rounded,
+              size: 56,
+              color: AppColors.green600,
+            ),
+          ),
         ),
       ),
     )
         .animate(onPlay: (controller) => controller.repeat(reverse: true))
-        .scaleXY(begin: 0.98, end: 1.02, duration: 2000.ms, curve: Curves.easeInOut);
+        .scaleXY(begin: 1, end: 1.05, duration: 1800.ms, curve: Curves.easeInOut);
+  }
+
+  Future<void> _showServerSettingsDialog() async {
+    final currentUrl = await ApiClient.getBaseUrl();
+    final urlController = TextEditingController(text: currentUrl);
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Row(
+            children: [
+              Icon(Icons.developer_mode_rounded, color: AppColors.green600),
+              SizedBox(width: 8),
+              Text(
+                'Server Settings',
+                style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Enter the backend API server URL to connect:',
+                style: TextStyle(color: AppColors.slate600, fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: urlController,
+                decoration: InputDecoration(
+                  labelText: 'API Base URL',
+                  labelStyle: const TextStyle(color: AppColors.slate500),
+                  hintText: 'e.g., http://192.168.1.15:5000/api',
+                  filled: true,
+                  fillColor: AppColors.slate50,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.slate200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: AppColors.green600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.slate500)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final newUrl = urlController.text.trim();
+                if (newUrl.isNotEmpty) {
+                  await ApiClient.setBaseUrl(newUrl);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Server API URL updated to: $newUrl'),
+                        backgroundColor: AppColors.green600,
+                      ),
+                    );
+                    Navigator.pop(context);
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.green600,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text('Save URL'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildTitle() {
