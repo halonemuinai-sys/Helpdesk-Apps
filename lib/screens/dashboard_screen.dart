@@ -45,13 +45,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       return isAssigned && isUnresolved;
     }).toList();
 
-    // Agent Performance calculations
-    final myTickets = allTickets.where((t) => t['assignedToId'] == currentAgentId).toList();
-    final myResolvedTickets = myTickets.where((t) => t['status'] == 'RESOLVED').toList();
-    final myResolvedCount = myResolvedTickets.length;
-    final myBreachedCount = myResolvedTickets.where((t) => t['isSlaBreached'] == true).length;
-    final myMetCount = myResolvedCount - myBreachedCount;
-    final mySlaRate = myResolvedCount == 0 ? 100.0 : (myMetCount / myResolvedCount) * 100;
 
     // SLA compliance metrics (overall)
     final resolvedTickets = allTickets.where((t) => t['status'] == 'RESOLVED').toList();
@@ -290,56 +283,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               const SizedBox(height: 18),
 
-              // AGENT PERFORMANCE SUMMARY
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.05)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.insights_rounded, color: Color(0xFF6366F1), size: 18),
-                        SizedBox(width: 8),
-                        Text(
-                          'AGENT PERFORMANCE',
-                          style: TextStyle(
-                            color: Colors.white, 
-                            fontWeight: FontWeight.bold, 
-                            fontSize: 13,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildPerformanceStatItem('Active Tasks', myActiveTickets.length.toString()),
-                        _buildPerformanceStatItem('My Resolved', myResolvedCount.toString()),
-                        _buildPerformanceStatItem('My SLA Rate', '${mySlaRate.toStringAsFixed(0)}%'),
-                        SizedBox(
-                          width: 38,
-                          height: 38,
-                          child: CircularProgressIndicator(
-                            value: mySlaRate / 100,
-                            strokeWidth: 4,
-                            backgroundColor: Colors.white12,
-                            color: mySlaRate >= 80 ? const Color(0xFF10B981) : Colors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-
               // TOP RESOLVED CATEGORIES (Bar chart visualization)
               Container(
                 padding: const EdgeInsets.all(18),
@@ -521,23 +464,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildPerformanceStatItem(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white54, fontSize: 11),
-        ),
-      ],
     );
   }
 
