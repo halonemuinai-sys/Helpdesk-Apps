@@ -15,17 +15,25 @@ class ApiClient {
   
   // Default URL based on environment and build mode
   static String get defaultBaseUrl {
-    // If the app is compiled for production (Release APK / Release Web),
-    // it will automatically point to the online production VPS URL.
+    // If running on Web, check the actual browser host address.
+    // If it's served on localhost/127.0.0.1, route to the local development backend on port 5000.
+    if (kIsWeb) {
+      final String host = Uri.base.host;
+      if (host == 'localhost' || host == '127.0.0.1') {
+        return 'http://localhost:5000/api';
+      }
+      return _productionBaseUrl;
+    }
+    
+    // For mobile apps:
+    // If compiled for production (Release APK), use the online production VPS URL.
     if (kReleaseMode) {
       return _productionBaseUrl;
     }
     
-    // Debug mode local testing fallbacks
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
-    } else if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000/api'; // Emulator local bridge
+    // Debug mode local testing fallback for Android Emulator
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:5000/api'; 
     } else {
       return 'http://localhost:5000/api';
     }
