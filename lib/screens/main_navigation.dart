@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
@@ -7,6 +8,7 @@ import 'dashboard_screen.dart';
 import 'tickets_list_screen.dart';
 import 'create_ticket_screen.dart';
 import 'login_screen.dart';
+import 'ticket_detail_screen.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -17,8 +19,8 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  
   late List<Widget> _screens;
+  StreamSubscription<Map<String, dynamic>>? _newTicketSubscription;
 
   @override
   void initState() {
@@ -39,6 +41,141 @@ class _MainNavigationState extends State<MainNavigation> {
         tickets.initRealtime(auth.token!);
       }
       tickets.fetchMasterData();
+
+      // Listen to new ticket alerts globally
+      _newTicketSubscription = tickets.onNewTicket.listen((ticket) {
+        _showNewTicketOverlay(ticket);
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _newTicketSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _showNewTicketOverlay(Map<String, dynamic> ticket) {
+    if (!mounted) return;
+
+    OverlayEntry? overlayEntry;
+    overlayEntry = OverlayEntry(
+      builder: (context) {
+        return Positioned(
+          top: MediaQuery.of(context).padding.top + 16,
+          left: 16,
+          right: 16,
+          child: TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0.0, end: 1.0),
+            duration: const Duration(milliseconds: 450),
+            curve: Curves.easeOutBack,
+            builder: (context, val, child) {
+              return Transform.translate(
+                offset: Offset(0, -60 * (1 - val)),
+                child: Opacity(
+                  opacity: val,
+                  child: child,
+                ),
+              );
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF110C2B), // Deep Space Purple
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFA855F7), width: 2), // Glowing Neon Purple
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFA855F7).withOpacity(0.35),
+                      blurRadius: 16,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(18),
+                  child: InkWell(
+                    onTap: () {
+                      if (overlayEntry != null) {
+                        overlayEntry!.remove();
+                        overlayEntry = null;
+                      }
+                      // Navigate to ticket detail screen
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => TicketDetailScreen(ticketId: ticket['id']),
+                        ),
+                      );
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF17113C),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.bolt_rounded,
+                              color: Color(0xFFC084FC),
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Text(
+                                  'NEW TICKET RECEIVED',
+                                  style: TextStyle(
+                                    color: Color(0xFFC084FC), 
+                                    fontSize: 10, 
+                                    fontWeight: FontWeight.bold, 
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  ticket['title'] ?? 'No Title',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Reporter: ${ticket['requester']?['name'] ?? 'Unknown'}',
+                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white30, size: 14),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    Overlay.of(context).insert(overlayEntry!);
+
+    // Automatically remove overlay after 4 seconds
+    Timer(const Duration(seconds: 4), () {
+      if (overlayEntry != null) {
+        overlayEntry!.remove();
+        overlayEntry = null;
+      }
     });
   }
 

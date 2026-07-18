@@ -21,6 +21,10 @@ class TicketProvider extends ChangeNotifier {
   SseConnection? _sseConnection;
   String? _lastNewTicketId; // For flashing new tickets
   
+  // Stream for new ticket alerts
+  final _newTicketController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get onNewTicket => _newTicketController.stream;
+  
   // Getters
   List<dynamic> get tickets => _tickets;
   List<dynamic> get categories => _categories;
@@ -154,6 +158,9 @@ class TicketProvider extends ChangeNotifier {
       _lastNewTicketId = ticket['id'];
       notifyListeners();
 
+      // Broadcast to global listener
+      _newTicketController.add(Map<String, dynamic>.from(ticket));
+
       // Clear highlight after 3 seconds
       Timer(const Duration(seconds: 3), () {
         if (_lastNewTicketId == ticket['id']) {
@@ -161,6 +168,9 @@ class TicketProvider extends ChangeNotifier {
           notifyListeners();
         }
       });
+    } else {
+      // Still broadcast even if it doesn't match active filter so the agent gets notified
+      _newTicketController.add(Map<String, dynamic>.from(ticket));
     }
   }
 
@@ -234,6 +244,7 @@ class TicketProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _newTicketController.close();
     _sseConnection?.close();
     super.dispose();
   }
