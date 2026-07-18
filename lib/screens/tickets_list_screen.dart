@@ -34,7 +34,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
       context: context,
       backgroundColor: const Color(0xFF0F172A),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return Consumer<TicketProvider>(
@@ -61,7 +61,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
                   
                   // Status Filter
-                  const Text('STATUS', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('STATUS', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -78,7 +78,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
 
                   // Priority Filter
-                  const Text('PRIORITY', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('PRIORITY', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -94,7 +94,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   const SizedBox(height: 20),
 
                   // Company Filter
-                  const Text('COMPANY / BRANCH', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold)),
+                  const Text('COMPANY / BRANCH', style: TextStyle(color: Colors.white70, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     dropdownColor: const Color(0xFF0F172A),
@@ -128,7 +128,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   ),
                   const SizedBox(height: 28),
                   
-                  // Clear filters button
+                  // Action buttons
                   Row(
                     children: [
                       Expanded(
@@ -138,11 +138,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.indigo),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            side: const BorderSide(color: Color(0xFF6366F1)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text('Reset All', style: TextStyle(color: Colors.indigoAccent)),
+                          child: const Text('Reset All', style: TextStyle(color: Color(0xFF818CF8), fontWeight: FontWeight.bold)),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -150,11 +150,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                         child: ElevatedButton(
                           onPressed: () => Navigator.pop(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.indigo,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: const Color(0xFF4F46E5),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text('Apply', style: TextStyle(color: Colors.white)),
+                          child: const Text('Apply', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],
@@ -191,23 +191,33 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
     final ticketProv = Provider.of<TicketProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E293B),
+      backgroundColor: const Color(0xFF0F172A), // Premium dark theme
       appBar: AppBar(
-        title: const Text('Tickets Feed'),
+        title: const Text(
+          'TICKETS FEED',
+          style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.5, fontSize: 18),
+        ),
         backgroundColor: const Color(0xFF0F172A),
         elevation: 0,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list_rounded),
-            onPressed: _showFilterBottomSheet,
+          Container(
+            margin: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+            decoration: BoxDecoration(
+              color: AppColors.slate800,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.filter_list_rounded, color: Colors.white, size: 20),
+              onPressed: _showFilterBottomSheet,
+            ),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Search box
+          // Elegant Search Box Container
           Container(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             color: const Color(0xFF0F172A),
             child: TextField(
               controller: _searchController,
@@ -217,14 +227,14 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
               onSubmitted: (val) {
                 ticketProv.fetchTickets();
               },
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Search ticket ID, title or reporter...',
-                hintStyle: const TextStyle(color: AppColors.slate500, fontSize: 14),
-                prefixIcon: const Icon(Icons.search, color: AppColors.slate500),
+                hintText: 'Search by ID, title, or reporter...',
+                hintStyle: const TextStyle(color: AppColors.slate500, fontSize: 13),
+                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6366F1), size: 20),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white54, size: 18),
+                        icon: const Icon(Icons.close_rounded, color: Colors.white54, size: 18),
                         onPressed: () {
                           _searchController.clear();
                           ticketProv.setSearchQuery('');
@@ -233,27 +243,48 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: const Color(0xFF1E293B),
+                fillColor: const Color(0xFF1E293B).withOpacity(0.6),
                 isDense: true,
-                contentPadding: EdgeInsets.zero,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.slate900),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: Colors.white.withOpacity(0.04)),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFF6366F1)),
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
                 ),
               ),
             ),
           ),
           
-          // Tickets feed
+          // Horizontal Active Filters Bar (Premium UX)
+          if (ticketProv.selectedStatus.isNotEmpty || 
+              ticketProv.selectedPriority.isNotEmpty || 
+              ticketProv.selectedCompanyId.isNotEmpty)
+            Container(
+              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  if (ticketProv.selectedStatus.isNotEmpty)
+                    _buildActiveFilterTag('Status: ${ticketProv.selectedStatus}', () => ticketProv.setStatus('')),
+                  if (ticketProv.selectedPriority.isNotEmpty)
+                    _buildActiveFilterTag('Priority: ${ticketProv.selectedPriority}', () => ticketProv.setPriority('')),
+                  if (ticketProv.selectedCompanyId.isNotEmpty)
+                    _buildActiveFilterTag('Company Filter Active', () => ticketProv.setCompanyId('')),
+                ],
+              ),
+            ),
+          
+          // Tickets feed stream
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ticketProv.fetchTickets(),
               color: const Color(0xFF6366F1),
-              backgroundColor: const Color(0xFF0F172A),
+              backgroundColor: const Color(0xFF1E293B),
               child: ticketProv.isLoading && ticketProv.tickets.isEmpty
                   ? const Center(
                       child: CircularProgressIndicator(color: Color(0xFF6366F1)),
@@ -261,20 +292,31 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   : ticketProv.tickets.isEmpty
                       ? ListView(
                           children: [
-                            SizedBox(height: MediaQuery.of(context).size.height * 0.25),
-                            const Center(
+                            SizedBox(height: MediaQuery.of(context).size.height * 0.20),
+                            Center(
                               child: Column(
                                 children: [
-                                  Icon(Icons.inbox_outlined, size: 64, color: AppColors.slate600),
-                                  SizedBox(height: 12),
-                                  Text(
-                                    'Ticket queue is empty',
-                                    style: TextStyle(color: Colors.white70, fontSize: 16, fontWeight: FontWeight.bold),
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1E293B).withOpacity(0.5),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.receipt_long_rounded, size: 52, color: AppColors.slate600),
                                   ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    'No tickets match your active filter criteria.',
-                                    style: TextStyle(color: AppColors.slate500, fontSize: 12),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'No tickets found',
+                                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 40.0),
+                                    child: Text(
+                                      'No tickets match your filters. Try adjusting your search query or reset your filters.',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: AppColors.slate500, fontSize: 12, height: 1.4),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -283,12 +325,12 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                         )
                       : ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
                           itemCount: ticketProv.tickets.length,
                           itemBuilder: (context, index) {
                             final ticket = ticketProv.tickets[index];
                             final bool isNew = ticket['id'] == ticketProv.lastNewTicketId;
-                            return _buildTicketFeedCard(context, ticket, isNew);
+                            return _buildPremiumTicketCard(context, ticket, isNew);
                           },
                         ),
             ),
@@ -298,47 +340,78 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
     );
   }
 
-  Widget _buildTicketFeedCard(BuildContext context, dynamic ticket, bool isNew) {
+  Widget _buildActiveFilterTag(String label, VoidCallback onClear) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF312E81).withOpacity(0.6),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF4F46E5).withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(color: Color(0xFFC7D2FE), fontSize: 11, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 6),
+          InkWell(
+            onTap: onClear,
+            child: const Icon(Icons.close_rounded, size: 14, color: Color(0xFF818CF8)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPremiumTicketCard(BuildContext context, dynamic ticket, bool isNew) {
     final priority = ticket['priority'] ?? 'LOW';
     Color priorityColor = Colors.grey;
-    if (priority == 'CRITICAL') priorityColor = Colors.red;
-    if (priority == 'HIGH') priorityColor = Colors.orange;
-    if (priority == 'MEDIUM') priorityColor = Colors.blue;
+    if (priority == 'CRITICAL') priorityColor = const Color(0xFFEF4444);
+    if (priority == 'HIGH') priorityColor = const Color(0xFFF97316);
+    if (priority == 'MEDIUM') priorityColor = const Color(0xFF3B82F6);
 
     final status = ticket['status'] ?? 'OPEN';
     Color statusColor = Colors.grey;
-    if (status == 'OPEN') statusColor = Colors.blue;
-    if (status == 'IN_PROGRESS') statusColor = Colors.amber;
-    if (status == 'PENDING') statusColor = Colors.purple;
-    if (status == 'RESOLVED') statusColor = AppColors.emeraldDefault;
-    if (status == 'CLOSED') statusColor = Colors.grey;
+    if (status == 'OPEN') statusColor = const Color(0xFF3B82F6);
+    if (status == 'IN_PROGRESS') statusColor = const Color(0xFFF59E0B);
+    if (status == 'PENDING') statusColor = const Color(0xFFA855F7);
+    if (status == 'RESOLVED') statusColor = const Color(0xFF10B981);
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 500),
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F172A),
-        borderRadius: BorderRadius.circular(14),
+        color: const Color(0xFF1E293B).withOpacity(0.7), // Glassy backdrop
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isNew 
               ? const Color(0xFF6366F1).withOpacity(0.8) 
-              : Colors.indigo.withOpacity(0.05),
+              : Colors.white.withOpacity(0.04),
           width: isNew ? 2.5 : 1,
         ),
         boxShadow: isNew
             ? [
                 BoxShadow(
                   color: const Color(0xFF6366F1).withOpacity(0.3),
-                  blurRadius: 8,
+                  blurRadius: 12,
                   spreadRadius: 2,
                 )
               ]
-            : null,
+            : [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(20),
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute(
@@ -346,11 +419,19 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
               ),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
+          child: Container(
+            padding: const EdgeInsets.all(18.0),
+            // Accent left border highlighting the ticket status
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              border: Border(
+                left: BorderSide(color: statusColor, width: 4.5),
+              ),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Top Row: Ticket ID, New badge, Priority badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -365,8 +446,8 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.indigo,
-                              borderRadius: BorderRadius.circular(4),
+                              color: const Color(0xFF6366F1),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
                               'NEW',
@@ -379,68 +460,73 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: priorityColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: priorityColor.withOpacity(0.2)),
+                        color: priorityColor.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: priorityColor.withOpacity(0.25)),
                       ),
                       child: Text(
                         priority,
-                        style: TextStyle(color: priorityColor, fontSize: 10, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: priorityColor, fontSize: 9, fontWeight: FontWeight.bold),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 10),
+                
+                // Ticket Title
                 Text(
                   ticket['title'] ?? '',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 6),
+                
+                // Company / Branch info
                 Row(
                   children: [
-                    const Icon(Icons.business_rounded, size: 14, color: AppColors.slate400),
-                    const SizedBox(width: 4),
+                    const Icon(Icons.business_rounded, size: 14, color: Colors.white38),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         '${ticket['company']?['name'] ?? ''} (${ticket['company']?['location'] ?? ''})',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.slate400, fontSize: 12),
+                        style: const TextStyle(color: Colors.white60, fontSize: 12),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
                 const Divider(color: Colors.white10, height: 1),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
+                
+                // Bottom Row: Requester name and Status Badge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
                       children: [
                         CircleAvatar(
-                          radius: 9,
-                          backgroundColor: Colors.indigo.shade900,
+                          radius: 11,
+                          backgroundColor: const Color(0xFF312E81),
                           child: Text(
                             (ticket['requester']?['name'] ?? 'U').substring(0, 1).toUpperCase(),
-                            style: const TextStyle(fontSize: 8, color: Color(0xFF818CF8), fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 9, color: Color(0xFFC7D2FE), fontWeight: FontWeight.bold),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Text(
                           ticket['requester']?['name'] ?? '',
-                          style: const TextStyle(color: AppColors.slate300, fontSize: 12),
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
                         ),
                       ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.1),
+                        color: statusColor.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: statusColor.withOpacity(0.2)),
                       ),
                       child: Text(
                         status,
