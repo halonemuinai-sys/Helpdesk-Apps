@@ -12,15 +12,20 @@ import 'theme/colors.dart';
 // Lets a tapped notification navigate even though it fires outside the widget tree
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  await NotificationService.init();
+
   NotificationService.onTicketTapped = (ticketId) {
     navigatorKey.currentState?.push(
       MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticketId)),
     );
   };
+
   runApp(const MyApp());
+
+  // Notifications are a nice-to-have: initialize after the app is already
+  // showing so a plugin/permission hiccup can never block app startup.
+  NotificationService.init();
 }
 
 class MyApp extends StatelessWidget {

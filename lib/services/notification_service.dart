@@ -12,53 +12,66 @@ class NotificationService {
   static Future<void> init() async {
     if (kIsWeb || _initialized) return;
 
-    const androidSettings = AndroidInitializationSettings('launcher_icon');
-    const iosSettings = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
+    // Never let a plugin/permission hiccup here take the rest of the app down with it.
+    try {
+      const androidSettings = AndroidInitializationSettings('launcher_icon');
+      const iosSettings = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const settings = InitializationSettings(android: androidSettings, iOS: iosSettings);
 
-    await _plugin.initialize(
-      settings,
-      onDidReceiveNotificationResponse: (response) {
-        final ticketId = response.payload;
-        if (ticketId != null && ticketId.isNotEmpty) {
-          onTicketTapped?.call(ticketId);
-        }
-      },
-    );
+      await _plugin.initialize(
+        settings,
+        onDidReceiveNotificationResponse: (response) {
+          final ticketId = response.payload;
+          if (ticketId != null && ticketId.isNotEmpty) {
+            onTicketTapped?.call(ticketId);
+          }
+        },
+      );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+      await _plugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
 
-    _initialized = true;
+      _initialized = true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('NotificationService.init failed (notifications will be unavailable): $e');
+      }
+    }
   }
 
   static Future<void> showNewTicketNotification(Map<String, dynamic> ticket) async {
-    if (kIsWeb) return;
+    if (kIsWeb || !_initialized) return;
 
     _unreadCount++;
 
-    final androidDetails = AndroidNotificationDetails(
-      'new_ticket_channel',
-      'Tiket Baru',
-      channelDescription: 'Notifikasi saat ada tiket IT Helpdesk baru masuk',
-      importance: Importance.high,
-      priority: Priority.high,
-      number: _unreadCount,
-    );
-    final iosDetails = DarwinNotificationDetails(badgeNumber: _unreadCount);
+    try {
+      final androidDetails = AndroidNotificationDetails(
+        'new_ticket_channel',
+        'Tiket Baru',
+        channelDescription: 'Notifikasi saat ada tiket IT Helpdesk baru masuk',
+        importance: Importance.high,
+        priority: Priority.high,
+        number: _unreadCount,
+      );
+      final iosDetails = DarwinNotificationDetails(badgeNumber: _unreadCount);
 
-    await _plugin.show(
-      ticket['id'].hashCode,
-      'Tiket Baru: ${ticket['id'] ?? ''}',
-      ticket['title'] ?? 'Ada tiket baru masuk ke antrian',
-      NotificationDetails(android: androidDetails, iOS: iosDetails),
-      payload: ticket['id']?.toString(),
-    );
+      await _plugin.show(
+        ticket['id'].hashCode,
+        'Tiket Baru: ${ticket['id'] ?? ''}',
+        ticket['title'] ?? 'Ada tiket baru masuk ke antrian',
+        NotificationDetails(android: androidDetails, iOS: iosDetails),
+        payload: ticket['id']?.toString(),
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('NotificationService.showNewTicketNotification failed: $e');
+      }
+    }
   }
 
   // Call when the user has viewed their tickets, to clear the icon badge count
