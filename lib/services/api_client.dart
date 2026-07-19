@@ -14,10 +14,10 @@ class ApiClient {
     final prefs = await SharedPreferences.getInstance();
     final savedUrl = prefs.getString(_urlKey);
     
-    // Automatically clear outdated or placeholder URLs to ensure fallback to new Vercel default
+    // Automatically clear outdated or placeholder URLs to ensure fallback to the current default
     if (savedUrl != null && (
-        savedUrl.contains('yourdomain.com') || 
-        savedUrl.contains('helpdesk2.mra.co.id') ||
+        savedUrl.contains('yourdomain.com') ||
+        savedUrl.contains('vercel.app') ||
         (kReleaseMode && savedUrl.contains('localhost'))
     )) {
       await prefs.remove(_urlKey);
