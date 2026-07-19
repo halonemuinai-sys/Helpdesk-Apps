@@ -1,11 +1,8 @@
-import 'dart:io';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 
 class ApiClient {
   static const String _urlKey = 'helpdesk_api_url';
-  static const String _productionBaseUrl = 'https://helpdesk2.mra.co.id/api';
   
   // Default URL based on environment
   static String get defaultBaseUrl {
