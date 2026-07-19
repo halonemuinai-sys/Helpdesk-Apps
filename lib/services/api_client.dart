@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../config.dart';
 
@@ -11,7 +12,19 @@ class ApiClient {
 
   static Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_urlKey) ?? defaultBaseUrl;
+    final savedUrl = prefs.getString(_urlKey);
+    
+    // Automatically clear outdated or placeholder URLs to ensure fallback to new Vercel default
+    if (savedUrl != null && (
+        savedUrl.contains('yourdomain.com') || 
+        savedUrl.contains('helpdesk2.mra.co.id') ||
+        (kReleaseMode && savedUrl.contains('localhost'))
+    )) {
+      await prefs.remove(_urlKey);
+      return defaultBaseUrl;
+    }
+    
+    return savedUrl ?? defaultBaseUrl;
   }
 
   static Future<void> setBaseUrl(String url) async {
