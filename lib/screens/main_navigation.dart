@@ -5,11 +5,13 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
 import '../services/biometric_service.dart';
+import '../services/notification_service.dart';
 import '../theme/colors.dart';
 import 'dashboard_screen.dart';
 import 'tickets_list_screen.dart';
 import 'create_ticket_screen.dart';
 import 'login_screen.dart';
+import 'team_report_screen.dart';
 import 'ticket_detail_screen.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -22,15 +24,18 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
   late List<Widget> _screens;
+  late bool _isAdmin;
   StreamSubscription<Map<String, dynamic>>? _newTicketSubscription;
 
   @override
   void initState() {
     super.initState();
+    _isAdmin = Provider.of<AuthProvider>(context, listen: false).user?['role'] == 'ADMIN';
     _screens = [
       const DashboardScreen(),
       const TicketsListScreen(),
       const CreateTicketScreen(),
+      if (_isAdmin) const TeamReportScreen(),
       const ProfileScreen(),
     ];
 
@@ -47,6 +52,7 @@ class _MainNavigationState extends State<MainNavigation> {
       // Listen to new ticket alerts globally
       _newTicketSubscription = tickets.onNewTicket.listen((ticket) {
         _showNewTicketOverlay(ticket);
+        NotificationService.showNewTicketNotification(ticket);
       });
     });
   }
@@ -103,6 +109,7 @@ class _MainNavigationState extends State<MainNavigation> {
                         overlayEntry!.remove();
                         overlayEntry = null;
                       }
+                      NotificationService.resetUnreadCount();
                       // Navigate to ticket detail screen
                       Navigator.of(context).push(
                         MaterialPageRoute(
@@ -185,6 +192,9 @@ class _MainNavigationState extends State<MainNavigation> {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 1) {
+      NotificationService.resetUnreadCount();
+    }
   }
 
   @override
@@ -237,23 +247,29 @@ class _MainNavigationState extends State<MainNavigation> {
               indicatorColor: AppColors.green100,
               indicatorShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-              destinations: const [
-                NavigationDestination(
+              destinations: [
+                const NavigationDestination(
                   icon: Icon(Icons.dashboard_outlined, color: AppColors.slate400),
                   selectedIcon: Icon(Icons.dashboard_rounded, color: AppColors.green700),
                   label: 'Dashboard',
                 ),
-                NavigationDestination(
+                const NavigationDestination(
                   icon: Icon(Icons.confirmation_num_outlined, color: AppColors.slate400),
                   selectedIcon: Icon(Icons.confirmation_num_rounded, color: AppColors.green700),
                   label: 'Tickets',
                 ),
-                NavigationDestination(
+                const NavigationDestination(
                   icon: Icon(Icons.add_circle_outline_rounded, color: AppColors.slate400),
                   selectedIcon: Icon(Icons.add_circle_rounded, color: AppColors.green700),
                   label: 'New Ticket',
                 ),
-                NavigationDestination(
+                if (_isAdmin)
+                  const NavigationDestination(
+                    icon: Icon(Icons.groups_outlined, color: AppColors.slate400),
+                    selectedIcon: Icon(Icons.groups_rounded, color: AppColors.green700),
+                    label: 'Team',
+                  ),
+                const NavigationDestination(
                   icon: Icon(Icons.person_outline_rounded, color: AppColors.slate400),
                   selectedIcon: Icon(Icons.person_rounded, color: AppColors.green700),
                   label: 'Profile',

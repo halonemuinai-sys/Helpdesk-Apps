@@ -5,9 +5,21 @@ import 'providers/ticket_provider.dart';
 import 'screens/biometric_lock_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation.dart';
+import 'screens/ticket_detail_screen.dart';
+import 'services/notification_service.dart';
 import 'theme/colors.dart';
 
-void main() {
+// Lets a tapped notification navigate even though it fires outside the widget tree
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService.init();
+  NotificationService.onTicketTapped = (ticketId) {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(builder: (_) => TicketDetailScreen(ticketId: ticketId)),
+    );
+  };
   runApp(const MyApp());
 }
 
@@ -22,6 +34,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TicketProvider()),
       ],
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         title: 'IT Helpdesk MRA',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(

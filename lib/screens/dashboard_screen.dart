@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/auth_provider.dart';
@@ -82,19 +83,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         elevation: 0,
         centerTitle: false,
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
-            decoration: BoxDecoration(
-              color: AppColors.slate100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.sync_rounded, color: AppColors.slate800, size: 20),
-              onPressed: () {
-                ticketProv.fetchTickets();
-              },
-            ),
-          ),
+          _buildSyncButton(ticketProv),
         ],
       ),
       body: RefreshIndicator(
@@ -449,6 +438,49 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   },
                 ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSyncButton(TicketProvider ticketProv) {
+    final bool isSyncing = ticketProv.isLoading;
+
+    return Padding(
+      padding: const EdgeInsets.only(right: 16, top: 10, bottom: 10),
+      child: Tooltip(
+        message: 'Tap untuk sinkronkan sekarang',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: isSyncing ? null : () => ticketProv.fetchTickets(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.green200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(color: AppColors.green500, shape: BoxShape.circle),
+                  )
+                      .animate(onPlay: (c) => c.repeat(reverse: true))
+                      .fadeOut(duration: 700.ms, curve: Curves.easeInOut),
+                  const SizedBox(width: 6),
+                  Text(
+                    isSyncing ? 'Syncing...' : 'Live',
+                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.green700),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
