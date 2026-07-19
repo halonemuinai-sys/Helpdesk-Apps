@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/ticket_provider.dart';
 import '../theme/colors.dart';
@@ -13,6 +14,9 @@ class TicketsListScreen extends StatefulWidget {
 
 class _TicketsListScreenState extends State<TicketsListScreen> {
   final _searchController = TextEditingController();
+
+  String _sortBy = 'newest'; // 'newest' or 'sla_urgent'
+  DateTimeRange? _dateRange;
 
   @override
   void initState() {
@@ -37,6 +41,8 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
         return Consumer<TicketProvider>(
           builder: (context, prov, _) {
             return SingleChildScrollView(
@@ -126,8 +132,27 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       prov.setCompanyId(val ?? '');
                     },
                   ),
+                  const SizedBox(height: 20),
+
+                  // Sort
+                  const Text('SORT BY', style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _buildSortChip('Terbaru', 'newest', setModalState),
+                      _buildSortChip('SLA Paling Mendesak', 'sla_urgent', setModalState),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Date range
+                  const Text('RENTANG TANGGAL', style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                  const SizedBox(height: 8),
+                  _buildDateRangeSelector(setModalState),
                   const SizedBox(height: 28),
-                  
+
                   // Action buttons
                   Row(
                     children: [
@@ -135,6 +160,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                         child: OutlinedButton(
                           onPressed: () {
                             prov.clearFilters();
+                            setModalState(() {
+                              _sortBy = 'newest';
+                              _dateRange = null;
+                            });
+                            setState(() {});
                             Navigator.pop(context);
                           },
                           style: OutlinedButton.styleFrom(
@@ -164,6 +194,8 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
             );
           },
         );
+          },
+        );
       },
     );
   }
@@ -186,9 +218,130 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
     );
   }
 
+  Widget _buildSortChip(String label, String value, StateSetter setModalState) {
+    final bool isSelected = _sortBy == value;
+    return ChoiceChip(
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : AppColors.slate600,
+          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          fontSize: 11,
+        ),
+      ),
+      selected: isSelected,
+      onSelected: (_) {
+        setState(() => _sortBy = value);
+        setModalState(() {});
+      },
+      selectedColor: AppColors.green600,
+      backgroundColor: AppColors.slate100,
+    );
+  }
+
+  Widget _buildDateRangeSelector(StateSetter setModalState) {
+    final label = _dateRange == null
+        ? 'Semua tanggal'
+        : '${DateFormat('dd/MM/yy').format(_dateRange!.start)} - ${DateFormat('dd/MM/yy').format(_dateRange!.end)}';
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: () async {
+        final now = DateTime.now();
+        final picked = await showDateRangePicker(
+          context: context,
+          firstDate: DateTime(now.year - 2),
+          lastDate: now,
+          initialDateRange: _dateRange,
+        );
+        if (picked != null) {
+          setState(() => _dateRange = picked);
+          setModalState(() {});
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.slate50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.slate200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.date_range_rounded, size: 18, color: AppColors.green600),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(label, style: const TextStyle(color: AppColors.slate800, fontSize: 13)),
+            ),
+            if (_dateRange != null)
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  setState(() => _dateRange = null);
+                  setModalState(() {});
+                },
+                child: const Padding(
+                  padding: EdgeInsets.all(2.0),
+                  child: Icon(Icons.close_rounded, size: 18, color: AppColors.slate400),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Applies the selected date range filter and sort order over the raw ticket list
+  List<dynamic> _applySortAndFilter(List<dynamic> tickets) {
+    Iterable<dynamic> result = tickets;
+
+    if (_dateRange != null) {
+      final endExclusive = _dateRange!.end.add(const Duration(days: 1));
+      result = result.where((t) {
+        final created = DateTime.tryParse(t['createdAt']?.toString() ?? '');
+        if (created == null) return false;
+        return !created.isBefore(_dateRange!.start) && created.isBefore(endExclusive);
+      });
+    }
+
+    final list = result.toList();
+
+    if (_sortBy == 'sla_urgent') {
+      list.sort((a, b) {
+        final da = _slaDeadline(a);
+        final db = _slaDeadline(b);
+        if (da == null && db == null) return 0;
+        if (da == null) return 1;
+        if (db == null) return -1;
+        return da.compareTo(db);
+      });
+    } else {
+      list.sort((a, b) {
+        final ca = DateTime.tryParse(a['createdAt']?.toString() ?? '');
+        final cb = DateTime.tryParse(b['createdAt']?.toString() ?? '');
+        if (ca == null || cb == null) return 0;
+        return cb.compareTo(ca);
+      });
+    }
+
+    return list;
+  }
+
+  // The active SLA deadline for a ticket (response limit if OPEN, resolution limit otherwise);
+  // null when the ticket has no active SLA (already resolved/closed, or no limit set).
+  DateTime? _slaDeadline(dynamic ticket) {
+    final status = ticket['status'] ?? 'OPEN';
+    if (status == 'RESOLVED' || status == 'CLOSED') return null;
+    final limit = status == 'OPEN' ? ticket['slaResponseLimit'] : ticket['slaResolutionLimit'];
+    final limitStr = limit?.toString() ?? '';
+    if (limitStr.isEmpty) return null;
+    return DateTime.tryParse(limitStr);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ticketProv = Provider.of<TicketProvider>(context);
+    final displayTickets = _applySortAndFilter(ticketProv.tickets);
 
     return Scaffold(
       backgroundColor: AppColors.slate50, // Light neutral theme
@@ -260,9 +413,11 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
           const SizedBox(height: 10),
           
           // Horizontal Active Filters Bar (Premium UX)
-          if (ticketProv.selectedStatus.isNotEmpty || 
-              ticketProv.selectedPriority.isNotEmpty || 
-              ticketProv.selectedCompanyId.isNotEmpty)
+          if (ticketProv.selectedStatus.isNotEmpty ||
+              ticketProv.selectedPriority.isNotEmpty ||
+              ticketProv.selectedCompanyId.isNotEmpty ||
+              _dateRange != null ||
+              _sortBy != 'newest')
             Container(
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -276,6 +431,13 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                     _buildActiveFilterTag('Priority: ${ticketProv.selectedPriority}', () => ticketProv.setPriority('')),
                   if (ticketProv.selectedCompanyId.isNotEmpty)
                     _buildActiveFilterTag('Company Filter Active', () => ticketProv.setCompanyId('')),
+                  if (_sortBy == 'sla_urgent')
+                    _buildActiveFilterTag('Sort: SLA Mendesak', () => setState(() => _sortBy = 'newest')),
+                  if (_dateRange != null)
+                    _buildActiveFilterTag(
+                      '${DateFormat('dd/MM').format(_dateRange!.start)} - ${DateFormat('dd/MM').format(_dateRange!.end)}',
+                      () => setState(() => _dateRange = null),
+                    ),
                 ],
               ),
             ),
@@ -290,7 +452,7 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                   ? const Center(
                       child: CircularProgressIndicator(color: AppColors.green600),
                     )
-                  : ticketProv.tickets.isEmpty
+                  : displayTickets.isEmpty
                       ? ListView(
                           children: [
                             SizedBox(height: MediaQuery.of(context).size.height * 0.20),
@@ -327,9 +489,9 @@ class _TicketsListScreenState extends State<TicketsListScreen> {
                       : ListView.builder(
                           physics: const AlwaysScrollableScrollPhysics(),
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                          itemCount: ticketProv.tickets.length,
+                          itemCount: displayTickets.length,
                           itemBuilder: (context, index) {
-                            final ticket = ticketProv.tickets[index];
+                            final ticket = displayTickets[index];
                             final bool isNew = ticket['id'] == ticketProv.lastNewTicketId;
                             return _buildPremiumTicketCard(context, ticket, isNew);
                           },

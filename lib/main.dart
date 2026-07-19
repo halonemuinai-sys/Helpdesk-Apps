@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/ticket_provider.dart';
+import 'screens/biometric_lock_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_navigation.dart';
 import 'theme/colors.dart';
@@ -89,6 +90,10 @@ class AuthWrapper extends StatelessWidget {
           ),
         ),
       );
+    }
+
+    if (auth.needsBiometricUnlock) {
+      return const BiometricLockScreen();
     }
 
     if (auth.isAuthenticated) {

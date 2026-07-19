@@ -320,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               decoration: _fieldDecoration(
                 icon: Icons.mail_outline_rounded,
-                hint: 'agent@mragroup.co.id',
+                hint: 'nama.anda@mragroup.co.id',
                 suffix: _isEmailValid
                     ? const Icon(Icons.check_circle, color: AppColors.green500, size: 22)
                     : null,

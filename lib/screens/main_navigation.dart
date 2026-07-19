@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/ticket_provider.dart';
+import '../services/biometric_service.dart';
 import '../theme/colors.dart';
 import 'dashboard_screen.dart';
 import 'tickets_list_screen.dart';
@@ -293,9 +295,10 @@ class ProfileScreen extends StatelessWidget {
     final totalResolved = myResolvedTickets.length;
     final breachedCount = myResolvedTickets.where((t) => t['isSlaBreached'] == true).length;
     final metCount = totalResolved - breachedCount;
-    final slaComplianceRate = totalResolved == 0 
-        ? 100.0 
+    final slaComplianceRate = totalResolved == 0
+        ? 100.0
         : (metCount / totalResolved) * 100;
+    final weeklyBuckets = _computeWeeklyBuckets(myTickets);
 
     return Scaffold(
       backgroundColor: AppColors.slate50,
@@ -487,6 +490,21 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 20),
+
+            // Quick login preference
+            _buildBiometricToggle(context, auth),
+            const SizedBox(height: 20),
+
+            // Weekly performance trends
+            const Text(
+              'PERFORMA MINGGUAN',
+              style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+            ),
+            const SizedBox(height: 10),
+            _buildWeeklyVolumeChart(weeklyBuckets),
+            const SizedBox(height: 14),
+            _buildWeeklyComplianceChart(weeklyBuckets),
             const SizedBox(height: 28),
 
             // Logout Button
@@ -530,6 +548,255 @@ class ProfileScreen extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBiometricToggle(BuildContext context, AuthProvider auth) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate300.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        value: auth.biometricEnabled,
+        activeThumbColor: AppColors.green600,
+        onChanged: (value) async {
+          if (value) {
+            final supported = await BiometricService.isDeviceSupported();
+            if (!supported) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Perangkat ini tidak mendukung biometric/PIN.'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+              return;
+            }
+            final verified = await BiometricService.authenticate(
+              reason: 'Verifikasi untuk mengaktifkan login cepat',
+            );
+            if (!verified) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Verifikasi dibatalkan.'),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+              return;
+            }
+          }
+          await auth.setBiometricEnabled(value);
+        },
+        secondary: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.green50,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: const Icon(Icons.fingerprint, color: AppColors.green600),
+        ),
+        title: const Text(
+          'Login Cepat (Biometric/PIN)',
+          style: TextStyle(color: AppColors.slate900, fontWeight: FontWeight.w600, fontSize: 14),
+        ),
+        subtitle: const Text(
+          'Buka workspace tanpa mengetik ulang password',
+          style: TextStyle(color: AppColors.slate500, fontSize: 11.5),
+        ),
+      ),
+    );
+  }
+
+  // Buckets the agent's tickets into the last 6 weeks (by createdAt), computing
+  // per-week volume and SLA compliance among tickets already resolved in that week.
+  List<Map<String, dynamic>> _computeWeeklyBuckets(List<dynamic> myTickets) {
+    final now = DateTime.now();
+    final currentWeekStart = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1));
+
+    return List.generate(6, (i) {
+      final index = 5 - i;
+      final weekStart = currentWeekStart.subtract(Duration(days: 7 * index));
+      final weekEnd = weekStart.add(const Duration(days: 7));
+
+      final ticketsInWeek = myTickets.where((t) {
+        final created = DateTime.tryParse(t['createdAt']?.toString() ?? '');
+        if (created == null) return false;
+        return !created.isBefore(weekStart) && created.isBefore(weekEnd);
+      }).toList();
+
+      final resolvedInWeek = ticketsInWeek.where((t) => t['status'] == 'RESOLVED').toList();
+      final breachedInWeek = resolvedInWeek.where((t) => t['isSlaBreached'] == true).length;
+      final double? compliance = resolvedInWeek.isEmpty
+          ? null
+          : ((resolvedInWeek.length - breachedInWeek) / resolvedInWeek.length) * 100;
+
+      return {
+        'label': DateFormat('dd/MM').format(weekStart),
+        'count': ticketsInWeek.length,
+        'compliance': compliance,
+      };
+    });
+  }
+
+  Widget _buildWeeklyVolumeChart(List<Map<String, dynamic>> buckets) {
+    final maxCount = buckets
+        .map((b) => b['count'] as int)
+        .fold(0, (prev, curr) => curr > prev ? curr : prev);
+    final safeMax = maxCount == 0 ? 1 : maxCount;
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate300.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'TIKET DITANGANI PER MINGGU',
+            style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: buckets.map((b) {
+              final count = b['count'] as int;
+              final barHeight = (count / safeMax) * 64;
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        count.toString(),
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate600),
+                      ),
+                      const SizedBox(height: 4),
+                      Tooltip(
+                        message: '${b['label']}: $count tiket',
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          height: barHeight < 4 ? 4 : barHeight,
+                          decoration: const BoxDecoration(
+                            color: AppColors.green600,
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        b['label'] as String,
+                        style: const TextStyle(fontSize: 9, color: AppColors.slate400),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyComplianceChart(List<Map<String, dynamic>> buckets) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.slate200),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.slate300.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'KEPATUHAN SLA PER MINGGU',
+            style: TextStyle(color: AppColors.slate500, fontSize: 11, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Persentase tiket resolved yang tepat waktu (dikelompokkan per minggu dibuat)',
+            style: TextStyle(color: AppColors.slate400, fontSize: 10.5),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: buckets.map((b) {
+              final compliance = b['compliance'] as double?;
+              final barColor = compliance == null
+                  ? AppColors.slate200
+                  : (compliance >= 80 ? AppColors.green600 : Colors.orange);
+              final barHeight = compliance == null ? 4.0 : ((compliance / 100) * 64).clamp(4.0, 64.0);
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        compliance == null ? '-' : '${compliance.toStringAsFixed(0)}%',
+                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.slate600),
+                      ),
+                      const SizedBox(height: 4),
+                      Tooltip(
+                        message: compliance == null
+                            ? '${b['label']}: belum ada tiket resolved'
+                            : '${b['label']}: ${compliance.toStringAsFixed(1)}% SLA compliance',
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 400),
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: barColor,
+                            borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        b['label'] as String,
+                        style: const TextStyle(fontSize: 9, color: AppColors.slate400),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
